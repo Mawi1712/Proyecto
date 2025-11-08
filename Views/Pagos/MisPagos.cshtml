@@ -1,0 +1,62 @@
+@model IEnumerable<DondeComemos.Models.Pago>
+
+@{
+    ViewData["Title"] = "Mis Pagos";
+}
+
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">
+        <i class="bi bi-credit-card"></i> Historial de Pagos
+    </h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+            <h5>No hay pagos registrados</h5>
+            <p>Tus pagos aparecerán aquí</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Restaurante</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Método</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pago in Model)
+                    {
+                        <tr>
+                            <td>@pago.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@pago.Reserva?.Restaurante?.Nombre</td>
+                            <td><strong>S/ @pago.Monto.ToString("0.00")</strong></td>
+                            <td>
+                                <span class="badge @(pago.Estado == "Completado" ? "bg-success" : 
+                                                     pago.Estado == "Pendiente" ? "bg-warning" : 
+                                                     "bg-danger")">
+                                    @pago.Estado
+                                </span>
+                            </td>
+                            <td>@(pago.MetodoPago ?? "Tarjeta")</td>
+                            <td>
+                                <a asp-controller="Reservas" asp-action="Details" 
+                                   asp-route-id="@pago.ReservaId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Ver Reserva
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

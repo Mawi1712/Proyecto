@@ -28,6 +28,8 @@ namespace DondeComemos.Controllers
         public async Task<IActionResult> Index()
         {
             var restaurantes = await _context.Restaurantes
+                .Include(r => r.Productos)
+                .Include(r => r.Resenas)
                 .OrderByDescending(r => r.Rating)
                 .ToListAsync();
 
@@ -39,7 +41,6 @@ namespace DondeComemos.Controllers
         {
             var query = _context.Restaurantes.AsQueryable();
 
-            // Buscar por texto general
             if (!string.IsNullOrEmpty(q))
             {
                 query = query.Where(r => r.Nombre.Contains(q) ||
@@ -48,19 +49,16 @@ namespace DondeComemos.Controllers
                                          r.TipoCocina.Contains(q));
             }
 
-            // Filtrar por tipo de cocina
             if (!string.IsNullOrEmpty(tipo))
             {
                 query = query.Where(r => r.TipoCocina == tipo);
             }
 
-            // Filtrar por rango de precios
             if (!string.IsNullOrEmpty(precio))
             {
                 query = query.Where(r => r.RangoPrecios == precio);
             }
 
-            // Filtrar por rating mínimo
             if (rating.HasValue)
             {
                 query = query.Where(r => r.Rating >= rating.Value);
@@ -68,7 +66,6 @@ namespace DondeComemos.Controllers
 
             var restaurantes = await query.OrderByDescending(r => r.Rating).ToListAsync();
 
-            // Pasar los parámetros a ViewBag para mantener los filtros
             ViewBag.SearchQuery = q;
             ViewBag.TipoFiltro = tipo;
             ViewBag.PrecioFiltro = precio;
@@ -119,6 +116,7 @@ namespace DondeComemos.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Procesar imagen
                 if (restaurante.ImagenArchivo != null)
                 {
                     try
@@ -131,6 +129,10 @@ namespace DondeComemos.Controllers
                         ModelState.AddModelError("ImagenArchivo", ex.Message);
                         return View(restaurante);
                     }
+                }
+                else if (!string.IsNullOrEmpty(restaurante.ImagenUrlExterna))
+                {
+                    restaurante.ImagenUrl = restaurante.ImagenUrlExterna;
                 }
                 else
                 {
@@ -173,10 +175,12 @@ namespace DondeComemos.Controllers
                     var restauranteExistente = await _context.Restaurantes.AsNoTracking()
                         .FirstOrDefaultAsync(r => r.Id == id);
 
+                    // Procesar imagen
                     if (restaurante.ImagenArchivo != null)
                     {
                         try
                         {
+                            // Eliminar imagen anterior si existe y no es externa
                             if (!string.IsNullOrEmpty(restauranteExistente?.ImagenUrl) &&
                                 !restauranteExistente.ImagenUrl.StartsWith("http"))
                             {
@@ -192,8 +196,19 @@ namespace DondeComemos.Controllers
                             return View(restaurante);
                         }
                     }
+                    else if (!string.IsNullOrEmpty(restaurante.ImagenUrlExterna))
+                    {
+                        // Usar URL externa
+                        if (!string.IsNullOrEmpty(restauranteExistente?.ImagenUrl) &&
+                            !restauranteExistente.ImagenUrl.StartsWith("http"))
+                        {
+                            _fileService.DeleteImage(restauranteExistente.ImagenUrl);
+                        }
+                        restaurante.ImagenUrl = restaurante.ImagenUrlExterna;
+                    }
                     else
                     {
+                        // Mantener imagen actual
                         restaurante.ImagenUrl = restauranteExistente?.ImagenUrl ?? string.Empty;
                     }
 
@@ -216,7 +231,11 @@ namespace DondeComemos.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
-            var restaurante = await _context.Restaurantes.FindAsync(id);
+            var restaurante = await _context.Restaurantes
+                .Include(r => r.Productos)
+                .Include(r => r.Resenas)
+                .FirstOrDefaultAsync(r => r.Id == id);
+            
             if (restaurante == null)
             {
                 return NotFound();
@@ -234,10 +253,12 @@ namespace DondeComemos.Controllers
                 var restaurante = await _context.Restaurantes
                     .Include(r => r.Productos)
                     .Include(r => r.Resenas)
+                    .Include(r => r.Reservas)
                     .FirstOrDefaultAsync(r => r.Id == id);
                 
                 if (restaurante != null)
                 {
+                    // Eliminar imágenes de productos
                     foreach (var producto in restaurante.Productos)
                     {
                         if (!string.IsNullOrEmpty(producto.ImagenUrl) &&
@@ -247,14 +268,23 @@ namespace DondeComemos.Controllers
                         }
                     }
 
+                    // Eliminar imagen del restaurante
                     if (!string.IsNullOrEmpty(restaurante.ImagenUrl) &&
                         !restaurante.ImagenUrl.StartsWith("http"))
                     {
                         _fileService.DeleteImage(restaurante.ImagenUrl);
                     }
 
+                    // Eliminar reservas asociadas
+                    if (restaurante.Reservas != null && restaurante.Reservas.Any())
+                    {
+                        _context.Reservas.RemoveRange(restaurante.Reservas);
+                    }
+
+                    // Eliminar el restaurante (esto eliminará en cascada productos y reseñas)
                     _context.Restaurantes.Remove(restaurante);
                     await _context.SaveChangesAsync();
+                    
                     TempData["Success"] = "Restaurante eliminado exitosamente";
                 }
                 

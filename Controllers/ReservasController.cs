@@ -325,6 +325,28 @@ namespace DondeComemos.Controllers
             var codigo = $"RES{DateTime.Now:yyyyMMdd}{random.Next(1000, 9999)}";
             return codigo;
         }
+        
+    // Agregar al final de la clase ReservasController, antes del último }
+
+public async Task<IActionResult> Calendario(int? restauranteId)
+{
+    if (restauranteId.HasValue)
+    {
+        var restaurante = await _context.Restaurantes.FindAsync(restauranteId.Value);
+        if (restaurante == null)
+            return NotFound();
+
+        ViewBag.RestauranteId = restauranteId.Value;
+        ViewBag.RestauranteNombre = restaurante.Nombre;
+    }
+    else
+    {
+        ViewBag.RestauranteId = 0;
+        ViewBag.RestauranteNombre = "Todos los Restaurantes";
+    }
+
+    return View();
+}
     }
 
     // DTO para productos
@@ -333,5 +355,6 @@ namespace DondeComemos.Controllers
         public int ProductoId { get; set; }
         public int Cantidad { get; set; }
         public string? Notas { get; set; }
+        
     }
 }

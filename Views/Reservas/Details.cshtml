@@ -261,6 +261,34 @@
                                 </button>
                             </form>
                         }
+                        <!-- En la sección de botones de acción, agrega esto: -->
+@if (Model.Estado != "Cancelada" && Model.Estado != "Completada" && !esPasada)
+{
+    <div class="card info-card mb-3">
+        <div class="card-header bg-success text-white py-3">
+            <h5 class="mb-0">
+                <i class="bi bi-credit-card"></i> Realizar Pago
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">Realiza un pago adelantado para asegurar tu reserva</p>
+            <form asp-controller="Pagos" asp-action="IniciarPago" method="post">
+                <input type="hidden" name="reservaId" value="@Model.Id" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Monto a pagar (S/)</label>
+                    <input type="number" name="monto" class="form-control" 
+                           value="50" min="10" step="0.01" />
+                    <small class="text-muted">Monto mínimo: S/ 10.00</small>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-credit-card"></i> Pagar con Tarjeta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
                         <a asp-controller="Restaurantes" asp-action="Details" 
                            asp-route-id="@Model.RestauranteId"

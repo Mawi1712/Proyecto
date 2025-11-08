@@ -21,7 +21,10 @@ namespace DondeComemos.Data
         public DbSet<Favorito> Favoritos { get; set; } = null!;
         public DbSet<Reserva> Reservas { get; set; } = null!;
         public DbSet<ReservaProducto> ReservaProductos { get; set; } = null!;
-        
+        public DbSet<Pago> Pagos { get; set; } = null!;
+        public DbSet<DisponibilidadRestaurante> DisponibilidadRestaurantes { get; set; } = null!;
+
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -55,7 +58,7 @@ namespace DondeComemos.Data
             // Configuración Reserva-Restaurante
             builder.Entity<Reserva>()
                 .HasOne(r => r.Restaurante)
-                .WithMany()
+                .WithMany(res => res.Reservas)
                 .HasForeignKey(r => r.RestauranteId)
                 .OnDelete(DeleteBehavior.Cascade);
             
@@ -65,13 +68,26 @@ namespace DondeComemos.Data
                 .WithMany(r => r.ProductosReservados)
                 .HasForeignKey(rp => rp.ReservaId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             builder.Entity<ReservaProducto>()
                 .HasOne(rp => rp.Producto)
                 .WithMany()
                 .HasForeignKey(rp => rp.ProductoId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
+            // Configuración Pago-Reserva
+            builder.Entity<Pago>()
+                .HasOne(p => p.Reserva)
+                .WithMany()
+                .HasForeignKey(p => p.ReservaId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+                // Configuración DisponibilidadRestaurante
+            builder.Entity<DisponibilidadRestaurante>()
+                .HasOne(d => d.Restaurante)
+                .WithMany()
+                .HasForeignKey(d => d.RestauranteId)
+                .OnDelete(DeleteBehavior.Cascade);
             
             // Configuración de decimales para SQLite
             builder.Entity<Restaurante>()

@@ -34,6 +34,8 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPdfService, PdfService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<ISemanticKernelService, SemanticKernelService>();
 
 
 builder.Services.AddControllersWithViews();

@@ -4,22 +4,309 @@
     ViewData["Title"] = "Eliminar Restaurante";
 }
 
-<div class="container py-4">
-    <h2 class="fw-bold text-danger">⚠️ Eliminar Restaurante</h2>
+<style>
+    .delete-hero {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        padding: 60px 0;
+        color: white;
+        margin-bottom: -30px;
+    }
+    .delete-card {
+        border: none;
+        border-radius: 25px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .warning-box {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+        border-left: 5px solid #ffc107;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .danger-box {
+        background: linear-gradient(135deg, #f8d7da 0%, #f5c2c7 100%);
+        border-left: 5px solid #dc3545;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    .restaurant-preview {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    .preview-image {
+        width: 100%;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    .info-item {
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+    }
+    .info-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .stat-badge {
+        padding: 15px 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .confirmation-checkbox {
+        background: white;
+        border: 2px solid #dc3545;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 30px 0;
+    }
+</style>
 
-    <p>¿Estás seguro de que quieres eliminar este restaurante?</p>
-
-    <dl class="row">
-        <dt class="col-sm-2">Nombre</dt>
-        <dd class="col-sm-10">@Model.Nombre</dd>
-
-        <dt class="col-sm-2">Dirección</dt>
-        <dd class="col-sm-10">@Model.Direccion</dd>
-    </dl>
-
-    <form asp-action="DeleteConfirmed">
-        <input type="hidden" asp-for="Id" />
-        <button type="submit" class="btn btn-danger">Eliminar</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-    </form>
+<div class="delete-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-2">
+            <i class="bi bi-trash3-fill"></i> Eliminar Restaurante
+        </h1>
+        <p class="lead opacity-75">Esta acción es permanente e irreversible</p>
+    </div>
 </div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card delete-card">
+                <div class="card-body p-5">
+                    <!-- Advertencia Principal -->
+                    <div class="danger-box">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-exclamation-triangle-fill text-danger display-4 me-3"></i>
+                            <div>
+                                <h4 class="mb-1 fw-bold text-danger">¡Advertencia Crítica!</h4>
+                                <p class="mb-0 text-dark">
+                                    Estás a punto de eliminar permanentemente este restaurante y todos sus datos asociados.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del Restaurante -->
+                    <div class="restaurant-preview">
+                        <div class="row g-4">
+                            @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                            {
+                                <div class="col-md-4">
+                                    <img src="@Model.ImagenUrl" alt="@Model.Nombre" class="preview-image" />
+                                </div>
+                            }
+                            <div class="@(string.IsNullOrEmpty(Model.ImagenUrl) ? "col-12" : "col-md-8")">
+                                <h3 class="fw-bold mb-4">
+                                    <i class="bi bi-shop text-primary"></i> @Model.Nombre
+                                </h3>
+
+                                <div class="info-item">
+                                    <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                                    <strong>Dirección:</strong> @Model.Direccion
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="bi bi-card-text text-secondary me-2"></i>
+                                    <strong>Descripción:</strong> @Model.Descripcion
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="bi bi-egg-fried text-warning me-2"></i>
+                                    <strong>Tipo de Cocina:</strong> @Model.TipoCocina
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="bi bi-cash-stack text-success me-2"></i>
+                                    <strong>Rango de Precios:</strong> @Model.RangoPrecios
+                                </div>
+
+                                <div class="info-item">
+                                    <i class="bi bi-star-fill text-warning me-2"></i>
+                                    <strong>Rating:</strong> @Model.Rating.ToString("0.0") / 5.0
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(Model.Telefono))
+                                {
+                                    <div class="info-item">
+                                        <i class="bi bi-telephone text-info me-2"></i>
+                                        <strong>Teléfono:</strong> @Model.Telefono
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.Horario))
+                                {
+                                    <div class="info-item">
+                                        <i class="bi bi-clock text-primary me-2"></i>
+                                        <strong>Horario:</strong> @Model.Horario
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas de Datos Asociados -->
+                    <div class="warning-box">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-database text-warning"></i> Datos que serán eliminados:
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="stat-badge bg-danger bg-opacity-10 border border-danger">
+                                    <i class="bi bi-menu-button-wide text-danger fs-3 d-block mb-2"></i>
+                                    <h4 class="mb-0 text-danger fw-bold">@Model.Productos.Count</h4>
+                                    <small class="text-dark">Productos del Menú</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-badge bg-warning bg-opacity-10 border border-warning">
+                                    <i class="bi bi-chat-dots text-warning fs-3 d-block mb-2"></i>
+                                    <h4 class="mb-0 text-warning fw-bold">@Model.Resenas.Count</h4>
+                                    <small class="text-dark">Reseñas</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-badge bg-info bg-opacity-10 border border-info">
+                                    <i class="bi bi-calendar-check text-info fs-3 d-block mb-2"></i>
+                                    <h4 class="mb-0 text-info fw-bold">@(Model.Reservas?.Count ?? 0)</h4>
+                                    <small class="text-dark">Reservas</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de consecuencias -->
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-x-octagon-fill"></i> Esta acción eliminará permanentemente:
+                        </h5>
+                        <ul class="mb-0">
+                            <li class="mb-2">
+                                <i class="bi bi-check2"></i> 
+                                Toda la información del restaurante (nombre, dirección, descripción, etc.)
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check2"></i> 
+                                <strong>@Model.Productos.Count productos</strong> del menú con sus imágenes
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check2"></i> 
+                                <strong>@Model.Resenas.Count reseñas</strong> de usuarios
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check2"></i> 
+                                <strong>@(Model.Reservas?.Count ?? 0) reservas</strong> asociadas
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check2"></i> 
+                                Todas las imágenes subidas al servidor
+                            </li>
+                            <li class="mb-0">
+                                <i class="bi bi-check2"></i> 
+                                Referencias en favoritos de usuarios
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Checkbox de Confirmación -->
+                    <div class="confirmation-checkbox">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" 
+                                   style="width: 1.5em; height: 1.5em;" onchange="toggleDeleteButton()">
+                            <label class="form-check-label fw-bold ms-2" for="confirmDelete" style="font-size: 1.1rem;">
+                                <i class="bi bi-shield-x text-danger"></i>
+                                Entiendo que esta acción es irreversible y todos los datos serán eliminados permanentemente
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Eliminación -->
+                    <form asp-action="Delete" method="post" id="deleteForm">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid gap-3 d-md-flex justify-content-md-between align-items-center">
+                                    <div>
+                                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-5">
+                                            <i class="bi bi-arrow-left"></i> Cancelar y Volver
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="btn btn-danger btn-lg px-5" id="deleteButton" disabled>
+                                            <i class="bi bi-trash3-fill"></i> Sí, Eliminar Permanentemente
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Información adicional -->
+                    <div class="text-center mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            Si solo deseas desactivar temporalmente el restaurante, considera usar la función de edición
+                            en lugar de eliminarlo permanentemente.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleDeleteButton() {
+            const checkbox = document.getElementById('confirmDelete');
+            const button = document.getElementById('deleteButton');
+            button.disabled = !checkbox.checked;
+        }
+
+        // Confirmación adicional antes de enviar
+        document.getElementById('deleteForm').addEventListener('submit', function(e) {
+            const checkbox = document.getElementById('confirmDelete');
+            
+            if (!checkbox.checked) {
+                e.preventDefault();
+                alert('Por favor, confirma que entiendes las consecuencias de esta acción.');
+                return false;
+            }
+
+            const confirmMessage = '⚠️ ÚLTIMA ADVERTENCIA ⚠️\n\n' +
+                                 'Estás a punto de eliminar:\n' +
+                                 '• Restaurante: @Model.Nombre\n' +
+                                 '• @Model.Productos.Count productos\n' +
+                                 '• @Model.Resenas.Count reseñas\n' +
+                                 '• @(Model.Reservas?.Count ?? 0) reservas\n\n' +
+                                 '¿Estás ABSOLUTAMENTE SEGURO?\n' +
+                                 'Esta acción NO se puede deshacer.';
+            
+            if (!confirm(confirmMessage)) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Mostrar indicador de carga
+            const button = document.getElementById('deleteButton');
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+            button.disabled = true;
+        });
+
+        // Deshabilitar el botón inicialmente
+        window.addEventListener('load', function() {
+            document.getElementById('deleteButton').disabled = true;
+        });
+    </script>
+}

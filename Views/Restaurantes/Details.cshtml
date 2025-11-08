@@ -27,6 +27,32 @@
         object-fit: cover;
         border-radius: 15px 15px 0 0;
     }
+    .rating-stars {
+        color: #ffc107;
+    }
+    .review-card {
+        border: none;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+    .review-card:hover {
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    .rating-breakdown {
+        font-size: 0.9rem;
+    }
 </style>
 
 <!-- Header del Restaurante -->
@@ -41,6 +67,10 @@
                         {
                             <i class="bi bi-star-fill"></i>
                         }
+                        @if (Model.Rating % 1 >= 0.5)
+                        {
+                            <i class="bi bi-star-half"></i>
+                        }
                         <span class="text-white ms-2">@Model.Rating.ToString("0.0")</span>
                     </div>
                     <span class="badge bg-primary fs-6">@Model.TipoCocina</span>
@@ -53,50 +83,25 @@
             
             @if (User.Identity?.IsAuthenticated ?? false)
             {
-                <div>
-                    @if (User.Identity?.IsAuthenticated ?? false)
-{
-    <div class="d-flex gap-2">
-        <a asp-controller="Reservas" asp-action="Create" 
-           asp-route-restauranteId="@Model.Id"
-           class="btn btn-success btn-lg">
-            <i class="bi bi-calendar-plus"></i> Hacer Reserva
-        </a>
-        
-        <form asp-controller="Favoritos" asp-action="Agregar" method="post" id="favoritoForm">
-            <input type="hidden" name="restauranteId" value="@Model.Id" />
-            <button type="submit" class="btn btn-light btn-lg" id="btnFavorito">
-                <i class="bi bi-heart" id="iconFavorito"></i>
-                <span id="textoFavorito">Favoritos</span>
-            </button>
-        </form>
-    </div>
-}
+                <div class="d-flex gap-2">
+                    <a asp-controller="Reservas" asp-action="Create" 
+                       asp-route-restauranteId="@Model.Id"
+                       class="btn btn-success btn-lg">
+                        <i class="bi bi-calendar-plus"></i> Hacer Reserva
+                    </a>
+                    
+                    <form asp-controller="Favoritos" asp-action="Agregar" method="post" id="favoritoForm">
+                        <input type="hidden" name="restauranteId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-light btn-lg" id="btnFavorito">
+                            <i class="bi bi-heart" id="iconFavorito"></i>
+                            <span id="textoFavorito">Favoritos</span>
+                        </button>
+                    </form>
                 </div>
             }
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        // Verificar si el restaurante es favorito
-        @if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <text>
-            fetch('/Favoritos/EsFavorito?restauranteId=@Model.Id')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.esFavorito) {
-                        document.getElementById('iconFavorito').className = 'bi bi-heart-fill text-danger';
-                        document.getElementById('textoFavorito').textContent = 'En Favoritos';
-                        document.getElementById('btnFavorito').classList.add('active');
-                    }
-                });
-            </text>
-        }
-    </script>
-}
 
 <div class="container py-5">
     <div class="row g-4">
@@ -341,12 +346,58 @@
         </div>
     </div>
 
-    <!-- Reseñas -->
+    <!-- Reseñas Mejoradas -->
     <div class="row mt-5">
         <div class="col-12">
-            <h3 class="fw-bold mb-4">
-                <i class="bi bi-chat-left-text text-primary"></i> Reseñas
-            </h3>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">
+                    <i class="bi bi-chat-left-text text-primary"></i> Reseñas y Calificaciones
+                </h3>
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                        <i class="bi bi-plus-circle"></i> Escribir Reseña
+                    </button>
+                }
+            </div>
+
+            <!-- Resumen de Calificaciones -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center border-end">
+                            <h1 class="display-3 fw-bold text-primary mb-0">@Model.Rating.ToString("0.0")</h1>
+                            <div class="text-warning fs-4">
+                                @for (int i = 0; i < (int)Model.Rating; i++)
+                                {
+                                    <i class="bi bi-star-fill"></i>
+                                }
+                                @if (Model.Rating % 1 >= 0.5)
+                                {
+                                    <i class="bi bi-star-half"></i>
+                                }
+                            </div>
+                            <p class="text-muted mb-0">@Model.TotalResenas opiniones</p>
+                        </div>
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Distribución de Calificaciones</h5>
+                            @for (int i = 5; i >= 1; i--)
+                            {
+                                var count = Model.Resenas.Count(r => (int)r.Calificacion == i);
+                                var percentage = Model.Resenas.Any() ? (count * 100.0 / Model.Resenas.Count) : 0;
+                                
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2" style="width: 60px;">@i estrellas</span>
+                                    <div class="progress flex-grow-1 me-2" style="height: 10px;">
+                                        <div class="progress-bar bg-warning" style="width: @percentage%"></div>
+                                    </div>
+                                    <span class="text-muted" style="width: 40px;">@count</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             @if (!Model.Resenas.Any())
             {
@@ -359,24 +410,114 @@
             else
             {
                 <div class="row g-4">
-                    @foreach (var resena in Model.Resenas.Take(6))
+                    @foreach (var resena in Model.Resenas.OrderByDescending(r => r.FechaCreacion))
                     {
-                        <div class="col-md-6">
-                            <div class="card shadow-sm">
+                        <div class="col-12">
+                            <div class="card review-card shadow-sm">
                                 <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <h5 class="mb-0">@resena.Titulo</h5>
-                                        <div class="text-warning">
-                                            @for (int i = 0; i < (int)resena.Calificacion; i++)
-                                            {
-                                                <i class="bi bi-star-fill"></i>
-                                            }
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <div class="d-flex gap-3">
+                                            <div class="user-avatar">
+                                                @resena.NombreUsuario.Substring(0, 1).ToUpper()
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-1">@resena.Titulo</h5>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="rating-stars">
+                                                        @for (int i = 0; i < (int)resena.Calificacion; i++)
+                                                        {
+                                                            <i class="bi bi-star-fill"></i>
+                                                        }
+                                                        @if (resena.Calificacion % 1 >= 0.5)
+                                                        {
+                                                            <i class="bi bi-star-half"></i>
+                                                        }
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        @resena.FechaCreacion.ToString("dd/MM/yyyy")
+                                                    </small>
+                                                </div>
+                                            </div>
                                         </div>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <form asp-controller="Resenas" asp-action="Delete" method="post">
+                                                <input type="hidden" name="id" value="@resena.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                        onclick="return confirm('¿Eliminar esta reseña?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
                                     </div>
-                                    <p class="card-text">@resena.Comentario</p>
-                                    <small class="text-muted">
-                                        @resena.FechaCreacion.ToString("dd/MM/yyyy")
-                                    </small>
+
+                                    <p class="card-text mb-3">@resena.Comentario</p>
+
+                                    @if (resena.CalidadComida.HasValue || resena.Servicio.HasValue || 
+                                         resena.Ambiente.HasValue || resena.RelacionPrecio.HasValue)
+                                    {
+                                        <div class="rating-breakdown">
+                                            <div class="row g-3">
+                                                @if (resena.CalidadComida.HasValue)
+                                                {
+                                                    <div class="col-md-3">
+                                                        <small class="text-muted d-block">Comida</small>
+                                                        <div class="rating-stars small">
+                                                            @for (int i = 0; i < (int)resena.CalidadComida; i++)
+                                                            {
+                                                                <i class="bi bi-star-fill"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (resena.Servicio.HasValue)
+                                                {
+                                                    <div class="col-md-3">
+                                                        <small class="text-muted d-block">Servicio</small>
+                                                        <div class="rating-stars small">
+                                                            @for (int i = 0; i < (int)resena.Servicio; i++)
+                                                            {
+                                                                <i class="bi bi-star-fill"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (resena.Ambiente.HasValue)
+                                                {
+                                                    <div class="col-md-3">
+                                                        <small class="text-muted d-block">Ambiente</small>
+                                                        <div class="rating-stars small">
+                                                            @for (int i = 0; i < (int)resena.Ambiente; i++)
+                                                            {
+                                                                <i class="bi bi-star-fill"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                                @if (resena.RelacionPrecio.HasValue)
+                                                {
+                                                    <div class="col-md-3">
+                                                        <small class="text-muted d-block">Precio/Calidad</small>
+                                                        <div class="rating-stars small">
+                                                            @for (int i = 0; i < (int)resena.RelacionPrecio; i++)
+                                                            {
+                                                                <i class="bi bi-star-fill"></i>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (resena.Verificado)
+                                    {
+                                        <div class="mt-2">
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-patch-check-fill"></i> Compra Verificada
+                                            </span>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -386,3 +527,124 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Escribir Reseña -->
+@if (User.Identity?.IsAuthenticated ?? false)
+{
+    <div class="modal fade" id="reviewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-star-fill text-warning"></i> Escribe tu Reseña
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-controller="Resenas" asp-action="Create" method="post">
+                    <input type="hidden" name="RestauranteId" value="@Model.Id" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Título de tu Reseña *</label>
+                            <input type="text" name="Titulo" class="form-control" 
+                                   placeholder="Ej: Excelente experiencia" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Calificación General *</label>
+                            <div class="d-flex gap-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <input type="radio" class="btn-check" name="Calificacion" 
+                                           id="rating@(i)" value="@i" required />
+                                    <label class="btn btn-outline-warning" for="rating@(i)">
+                                        @for (int j = 0; j < i; j++)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tu Comentario *</label>
+                            <textarea name="Comentario" class="form-control" rows="4" 
+                                      placeholder="Cuéntanos sobre tu experiencia..." required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Calidad de Comida</label>
+                                <select name="CalidadComida" class="form-select">
+                                    <option value="">No calificar</option>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i">@i estrellas</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Servicio</label>
+                                <select name="Servicio" class="form-select">
+                                    <option value="">No calificar</option>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i">@i estrellas</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ambiente</label>
+                                <select name="Ambiente" class="form-select">
+                                    <option value="">No calificar</option>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i">@i estrellas</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Relación Precio/Calidad</label>
+                                <select name="RelacionPrecio" class="form-select">
+                                    <option value="">No calificar</option>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <option value="@i">@i estrellas</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send-fill"></i> Publicar Reseña
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Verificar si el restaurante es favorito
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <text>
+            fetch('/Favoritos/EsFavorito?restauranteId=@Model.Id')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.esFavorito) {
+                        document.getElementById('iconFavorito').className = 'bi bi-heart-fill text-danger';
+                        document.getElementById('textoFavorito').textContent = 'En Favoritos';
+                        document.getElementById('btnFavorito').classList.add('active');
+                    }
+                });
+            </text>
+        }
+    </script>
+}

@@ -62,32 +62,44 @@
     }
 
     @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
-    {
-        <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle @Active("Restaurantes","Index")" href="#" id="adminDropdown" 
-               role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-gear"></i> Administrar
-            </a>
-            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                <li>
-                    <a class="dropdown-item" asp-controller="Restaurantes" asp-action="Index">
-                        <i class="bi bi-shop"></i> Restaurantes
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" asp-controller="Restaurantes" asp-action="Create">
-                        <i class="bi bi-plus-circle"></i> Agregar Restaurante
-                    </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                    <a class="dropdown-item" asp-controller="Estadisticas" asp-action="Index">
-                        <i class="bi bi-graph-up"></i> Estadísticas
-                    </a>
-                </li>
-            </ul>
-        </li>
-    }
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle @Active("Restaurantes","Index")" href="#" id="adminDropdown" 
+           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-gear"></i> Administrar
+        </a>
+        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+            <li>
+                <a class="dropdown-item" asp-controller="Restaurantes" asp-action="Index">
+                    <i class="bi bi-shop"></i> Restaurantes
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" asp-controller="Restaurantes" asp-action="Create">
+                    <i class="bi bi-plus-circle"></i> Agregar Restaurante
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" asp-controller="Reservas" asp-action="Calendario">
+                    <i class="bi bi-calendar-week"></i> Calendario de Reservas
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" asp-controller="Estadisticas" asp-action="Index">
+                    <i class="bi bi-graph-up"></i> Estadísticas
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item" asp-controller="Demo" asp-action="SemanticKernel">
+                    <i class="bi bi-robot text-primary"></i> Demo Semantic Kernel
+                </a>
+            </li>
+        </ul>
+    </li>
+}
 
     <li class="nav-item">
         <a class="nav-link @Active("Contact","Index")" asp-controller="Contact" asp-action="Index">

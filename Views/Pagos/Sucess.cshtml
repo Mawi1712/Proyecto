@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Pago Exitoso";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="fw-bold mb-3">¡Pago Exitoso!</h2>
+                    <p class="lead text-muted mb-4">
+                        Tu pago ha sido procesado correctamente.
+                    </p>
+                    <div class="alert alert-success">
+                        <i class="bi bi-info-circle"></i>
+                        Recibirás un correo de confirmación en breve.
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Reservas" asp-action="Index" 
+                           class="btn btn-primary btn-lg">
+                            <i class="bi bi-calendar-check"></i> Ver Mis Reservas
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" 
+                           class="btn btn-outline-secondary">
+                            Volver al Inicio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
