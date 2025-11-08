@@ -1,0 +1,212 @@
+@model IEnumerable<DondeComemos.Models.Restaurante>
+
+@{
+    ViewData["Title"] = "Mis Favoritos";
+}
+
+<style>
+    .favorites-hero {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 80px 0;
+        color: white;
+    }
+    .favorite-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all 0.4s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    .favorite-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    .favorite-img {
+        height: 250px;
+        object-fit: cover;
+    }
+    .heart-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        animation: heartBeat 1.5s infinite;
+    }
+    @@keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+</style>
+
+<!-- Hero -->
+<div class="favorites-hero">
+    <div class="container text-center">
+        <h1 class="display-3 fw-bold mb-3">
+            <i class="bi bi-heart-fill"></i> Mis Restaurantes Favoritos
+        </h1>
+        <p class="lead">Los lugares que más te gustan, todos en un solo lugar</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-heart display-1 text-muted"></i>
+            <h3 class="mt-4 fw-bold">Aún no tienes favoritos</h3>
+            <p class="text-muted mb-4">
+                Explora restaurantes y agrega tus favoritos haciendo clic en el ❤️
+            </p>
+            <a asp-controller="Restaurantes" asp-action="Search" 
+               class="btn btn-primary btn-lg px-5"
+               style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none;">
+                <i class="bi bi-search"></i> Explorar Restaurantes
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="fw-bold mb-0">
+                        <i class="bi bi-collection"></i> 
+                        Tienes @Model.Count() restaurante@(Model.Count() != 1 ? "s" : "") favorito@(Model.Count() != 1 ? "s" : "")
+                    </h3>
+                    <a asp-controller="Restaurantes" asp-action="Search" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Agregar Más
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var restaurante in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card favorite-card h-100">
+                        <div class="position-relative">
+                            <img src="@restaurante.ImagenUrl" class="card-img-top favorite-img" 
+                                 alt="@restaurante.Nombre" />
+                            <div class="heart-icon">
+                                <i class="bi bi-heart-fill text-danger fs-3"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold mb-0">@restaurante.Nombre</h5>
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span class="text-dark">@restaurante.Rating.ToString("0.0")</span>
+                                </div>
+                            </div>
+
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-geo-alt-fill text-danger"></i> @restaurante.Direccion
+                            </p>
+
+                            <p class="card-text text-muted small" style="height: 60px; overflow: hidden;">
+                                @restaurante.Descripcion
+                            </p>
+
+                            <div class="mb-3">
+                                <span class="badge bg-primary me-1">@restaurante.TipoCocina</span>
+                                <span class="badge bg-success">@restaurante.RangoPrecios</span>
+                            </div>
+
+                            <div class="d-flex gap-2 mb-3">
+                                @if (restaurante.DeliveryDisponible)
+                                {
+                                    <i class="bi bi-truck text-success" title="Delivery"></i>
+                                }
+                                @if (restaurante.AceptaReservas)
+                                {
+                                    <i class="bi bi-calendar-check text-primary" title="Reservas"></i>
+                                }
+                                @if (restaurante.WifiGratis)
+                                {
+                                    <i class="bi bi-wifi text-info" title="WiFi"></i>
+                                }
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <a asp-controller="Restaurantes" asp-action="Details" 
+                                   asp-route-id="@restaurante.Id"
+                                   class="btn btn-primary">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </a>
+                                
+                                <form asp-action="Eliminar" method="post" class="d-inline">
+                                    <input type="hidden" name="restauranteId" value="@restaurante.Id" />
+                                    <button type="submit" class="btn btn-outline-danger w-100"
+                                            onclick="return confirm('¿Eliminar de favoritos?')">
+                                        <i class="bi bi-heart-break"></i> Quitar de Favoritos
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Estadísticas de Favoritos -->
+        <div class="row mt-5 g-4">
+            <div class="col-12">
+                <h4 class="fw-bold mb-4">
+                    <i class="bi bi-bar-chart"></i> Estadísticas de tus Favoritos
+                </h4>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <i class="bi bi-star-fill text-warning fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Average(r => r.Rating).ToString("0.0")</h3>
+                    <small class="text-muted">Rating Promedio</small>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <i class="bi bi-chat-dots text-primary fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Sum(r => r.TotalResenas)</h3>
+                    <small class="text-muted">Total Reseñas</small>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <i class="bi bi-egg-fried text-danger fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Select(r => r.TipoCocina).Distinct().Count()</h3>
+                    <small class="text-muted">Tipos de Cocina</small>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <i class="bi bi-menu-button-wide text-success fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Sum(r => r.Productos.Count)</h3>
+                    <small class="text-muted">Platos Disponibles</small>
+                </div>
+            </div>
+        </div>
+    }
+</div>

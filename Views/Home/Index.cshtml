@@ -1,0 +1,371 @@
+﻿@model DondeComemos.Models.HomeViewModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<style>
+    .cuisine-carousel-item {
+        position: relative;
+        height: 300px;
+        border-radius: 20px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    .cuisine-carousel-item:hover {
+        transform: scale(1.05);
+    }
+    .cuisine-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .cuisine-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        padding: 30px 20px;
+        color: white;
+    }
+    .featured-badge {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 700;
+        z-index: 10;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content container">
+        <h1 class="display-4 fw-bold text-white text-center">DondeComemos</h1>
+        <p class="lead text-white-50 text-center mt-3">
+            Descubre los mejores restaurantes de Arequipa
+        </p>
+        <div class="text-center mt-4">
+            <a class="btn btn-light btn-lg px-4 py-2" asp-controller="Restaurantes" asp-action="Search">
+                <i class="bi bi-search"></i> Iniciar la búsqueda
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Restaurantes Destacados -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5">
+                <i class="bi bi-star-fill text-warning"></i> Restaurantes Destacados
+            </h2>
+            <p class="text-muted lead">Los mejores lugares seleccionados para ti</p>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var restaurante in Model.Favoritos)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-0 position-relative" 
+                         style="border-radius: 20px; overflow: hidden;">
+                        
+                        <span class="featured-badge">
+                            <i class="bi bi-gem"></i> Destacado
+                        </span>
+
+                        <img src="@restaurante.ImagenUrl" class="card-img-top" alt="@restaurante.Nombre" 
+                             style="height: 250px; object-fit: cover;">
+                        
+                        <div class="card-body p-4">
+                            <h4 class="card-title fw-bold mb-2">@restaurante.Nombre</h4>
+                            <p class="card-text text-muted">@restaurante.Descripcion</p>
+                            
+                            <div class="text-warning fs-5 mb-3">
+                                @for (int i = 0; i < restaurante.Rating; i++)
+                                {
+                                    <i class="bi bi-star-fill"></i>
+                                }
+                                <span class="text-dark ms-2">@restaurante.Rating.0</span>
+                            </div>
+
+                            <a asp-controller="Restaurantes" asp-action="Search" 
+                               class="btn btn-primary w-100"
+                               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                Ver Detalles <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Carrusel de Tipos de Cocina -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5">
+                <i class="bi bi-egg-fried text-danger"></i> Explora Por Tipo de Cocina
+            </h2>
+            <p class="text-muted lead">Encuentra tu comida favorita</p>
+        </div>
+
+        <div id="cuisineCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#cuisineCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#cuisineCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#cuisineCarousel" data-bs-slide-to="2"></button>
+            </div>
+
+            <div class="carousel-inner">
+                <!-- Slide 1 -->
+                <div class="carousel-item active">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Peruana" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=600" 
+                                         alt="Comida Peruana" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🇵🇪 Comida Peruana</h3>
+                                        <p class="mb-0">Ceviche, Lomo Saltado y más</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Italiana" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1595295333158-4742f28fbd85?w=600" 
+                                         alt="Comida Italiana" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🇮🇹 Comida Italiana</h3>
+                                        <p class="mb-0">Pasta, Pizza y Risotto</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=China" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600" 
+                                         alt="Comida China" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🇨🇳 Comida China</h3>
+                                        <p class="mb-0">Chifa, Wantan y Arroz Chaufa</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Japonesa" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=600" 
+                                         alt="Comida Japonesa" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🇯🇵 Comida Japonesa</h3>
+                                        <p class="mb-0">Sushi, Ramen y Tempura</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Mexicana" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=600" 
+                                         alt="Comida Mexicana" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🇲🇽 Comida Mexicana</h3>
+                                        <p class="mb-0">Tacos, Burritos y Quesadillas</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Fast Food" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600" 
+                                         alt="Comida Rápida" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🍔 Comida Rápida</h3>
+                                        <p class="mb-0">Hamburguesas, Hot Dogs y Más</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3 -->
+                <div class="carousel-item">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Carnes y Parrillas" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1588168333986-5078d3ae3976?w=600" 
+                                         alt="Carnes y Parrillas" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🥩 Carnes y Parrillas</h3>
+                                        <p class="mb-0">Asados, BBQ y Parrilladas</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Mariscos" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1559737558-2f5a511713c6?w=600" 
+                                         alt="Mariscos" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🦞 Mariscos</h3>
+                                        <p class="mb-0">Pescados y Mariscos Frescos</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="/Restaurantes/Search?tipo=Pizzería" class="text-decoration-none">
+                                <div class="cuisine-carousel-item">
+                                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600" 
+                                         alt="Pizzería" class="cuisine-image">
+                                    <div class="cuisine-overlay">
+                                        <h3 class="fw-bold">🍕 Pizzería</h3>
+                                        <p class="mb-0">Pizzas Artesanales</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#cuisineCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true" 
+                      style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#cuisineCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"
+                      style="background-color: rgba(0,0,0,0.5); border-radius: 50%; padding: 20px;"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
+
+        <!-- Botones de Acceso Rápido -->
+        <div class="text-center mt-5">
+            <h4 class="fw-bold mb-4">O busca por categoría:</h4>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="/Restaurantes/Search?tipo=Peruana" class="btn btn-outline-primary btn-lg px-4">
+                    🇵🇪 Peruana
+                </a>
+                <a href="/Restaurantes/Search?tipo=Italiana" class="btn btn-outline-primary btn-lg px-4">
+                    🇮🇹 Italiana
+                </a>
+                <a href="/Restaurantes/Search?tipo=China" class="btn btn-outline-primary btn-lg px-4">
+                    🇨🇳 China
+                </a>
+                <a href="/Restaurantes/Search?tipo=Japonesa" class="btn btn-outline-primary btn-lg px-4">
+                    🇯🇵 Japonesa
+                </a>
+                <a href="/Restaurantes/Search?tipo=Fast Food" class="btn btn-outline-primary btn-lg px-4">
+                    🍔 Fast Food
+                </a>
+                <a href="/Restaurantes/Search" class="btn btn-primary btn-lg px-4">
+                    Ver Todos <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Reseñas -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-5">💬 Lo Que Dicen Nuestros Usuarios</h2>
+            <p class="text-muted lead">Experiencias reales de nuestra comunidad</p>
+        </div>
+        
+        <div class="row g-4">
+            @foreach (var testimonio in Model.Reseñas)
+            {
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-sm border-0 text-center" style="border-radius: 20px;">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <img src="@testimonio.ImagenUrl" alt="@testimonio.Usuario" 
+                                     class="rounded-circle shadow" 
+                                     style="width: 100px; height: 100px; object-fit: cover;" />
+                            </div>
+                            
+                            <div class="text-warning mb-3 fs-5">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            
+                            <p class="fst-italic text-muted mb-3">"@testimonio.Texto"</p>
+                            
+                            <h6 class="fw-bold mb-1">@testimonio.Usuario</h6>
+                            <small class="text-muted">@testimonio.Rol</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-5 text-white text-center" 
+         style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        @if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            <h2 class="display-5 fw-bold mb-4">¿Listo para explorar?</h2>
+            <p class="lead mb-4">Únete a nuestra comunidad y descubre los mejores restaurantes</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a class="btn btn-light btn-lg px-5" asp-area="Identity" asp-page="/Account/Register">
+                    <i class="bi bi-person-plus"></i> Registrarse Gratis
+                </a>
+                <a class="btn btn-outline-light btn-lg px-5" asp-area="Identity" asp-page="/Account/Login">
+                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                </a>
+            </div>
+        }
+        else
+        {
+            <h2 class="display-5 fw-bold mb-4">¡Explora los mejores restaurantes!</h2>
+            <p class="lead mb-4">Miles de opciones gastronómicas te esperan</p>
+            <a class="btn btn-light btn-lg px-5" asp-controller="Restaurantes" asp-action="Search">
+                <i class="bi bi-search"></i> Ver Todos los Restaurantes
+            </a>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Auto-avance del carrusel cada 5 segundos
+        var carousel = new bootstrap.Carousel(document.getElementById('cuisineCarousel'), {
+            interval: 5000,
+            wrap: true
+        });
+    </script>
+}

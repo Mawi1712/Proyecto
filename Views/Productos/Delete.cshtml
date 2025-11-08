@@ -1,0 +1,127 @@
+@model DondeComemos.Models.Producto
+
+@{
+    ViewData["Title"] = "Eliminar Producto";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h2 class="mb-0">
+                        <i class="bi bi-trash"></i> Eliminar Producto
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+                    </div>
+
+                    <h4 class="mb-4">¿Estás seguro de que deseas eliminar este producto?</h4>
+
+                    <div class="row">
+                        @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                        {
+                            <div class="col-md-4 mb-3 text-center">
+                                <img src="@Model.ImagenUrl" alt="@Model.Nombre" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     style="max-height: 200px; object-fit: cover;" />
+                            </div>
+                        }
+
+                        <div class="@(string.IsNullOrEmpty(Model.ImagenUrl) ? "col-12" : "col-md-8")">
+                            <dl class="row">
+                                <dt class="col-sm-4">Nombre:</dt>
+                                <dd class="col-sm-8">
+                                    <strong>@Model.Nombre</strong>
+                                </dd>
+
+                                <dt class="col-sm-4">Categoría:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-primary">@Model.Categoria</span>
+                                </dd>
+
+                                <dt class="col-sm-4">Precio:</dt>
+                                <dd class="col-sm-8">
+                                    <strong class="text-success">S/ @Model.Precio.ToString("0.00")</strong>
+                                </dd>
+
+                                @if (!string.IsNullOrEmpty(Model.Descripcion))
+                                {
+                                    <dt class="col-sm-4">Descripción:</dt>
+                                    <dd class="col-sm-8">@Model.Descripcion</dd>
+                                }
+
+                                <dt class="col-sm-4">Estado:</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.Disponible)
+                                    {
+                                        <span class="badge bg-success">Disponible</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">No disponible</span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-4">Características:</dt>
+                                <dd class="col-sm-8">
+                                    @if (Model.RecomendacionChef)
+                                    {
+                                        <span class="badge bg-warning text-dark me-1">
+                                            <i class="bi bi-star-fill"></i> Recomendación Chef
+                                        </span>
+                                    }
+                                    @if (Model.EsVegetariano)
+                                    {
+                                        <span class="badge bg-success me-1">
+                                            <i class="bi bi-leaf"></i> Vegetariano
+                                        </span>
+                                    }
+                                    @if (Model.EsVegano)
+                                    {
+                                        <span class="badge bg-success me-1">
+                                            <i class="bi bi-flower1"></i> Vegano
+                                        </span>
+                                    }
+                                    @if (Model.SinGluten)
+                                    {
+                                        <span class="badge bg-info me-1">
+                                            <i class="bi bi-shield-check"></i> Sin Gluten
+                                        </span>
+                                    }
+                                    @if (Model.Picante)
+                                    {
+                                        <span class="badge bg-danger me-1">
+                                            <i class="bi bi-fire"></i> Picante
+                                        </span>
+                                    }
+                                </dd>
+
+                                <dt class="col-sm-4">Restaurante:</dt>
+                                <dd class="col-sm-8">@Model.Restaurante?.Nombre</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" asp-route-restauranteId="@Model.RestauranteId" 
+                               class="btn btn-outline-secondary btn-lg px-5">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg px-5">
+                                <i class="bi bi-trash-fill"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,245 @@
+@model DondeComemos.Models.Producto
+
+@{
+    ViewData["Title"] = "Editar Producto";
+}
+
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h2 class="mb-0">
+                        <i class="bi bi-pencil-square"></i> Editar Producto
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="RestauranteId" />
+                        <input type="hidden" asp-for="ImagenUrl" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="border-bottom pb-2 mb-3">
+                                    <i class="bi bi-info-circle text-primary"></i> Información del Plato
+                                </h4>
+                            </div>
+
+                            <div class="col-md-8 mb-3">
+                                <label asp-for="Nombre" class="form-label fw-bold">
+                                    <i class="bi bi-egg-fried"></i> Nombre del Plato *
+                                </label>
+                                <input asp-for="Nombre" class="form-control" />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label asp-for="Precio" class="form-label fw-bold">
+                                    <i class="bi bi-cash"></i> Precio (S/) *
+                                </label>
+                                <input asp-for="Precio" class="form-control" type="number" step="0.01" />
+                                <span asp-validation-for="Precio" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Descripcion" class="form-label fw-bold">
+                                    <i class="bi bi-card-text"></i> Descripción
+                                </label>
+                                <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Categoria" class="form-label fw-bold">
+                                    <i class="bi bi-bookmark"></i> Categoría *
+                                </label>
+                                <select asp-for="Categoria" class="form-select">
+                                    <option value="Entradas">Entradas</option>
+                                    <option value="Platos de Fondo">Platos de Fondo</option>
+                                    <option value="Sopas">Sopas</option>
+                                    <option value="Ensaladas">Ensaladas</option>
+                                    <option value="Carnes">Carnes</option>
+                                    <option value="Pescados y Mariscos">Pescados y Mariscos</option>
+                                    <option value="Pastas">Pastas</option>
+                                    <option value="Pizzas">Pizzas</option>
+                                    <option value="Sandwiches">Sandwiches</option>
+                                    <option value="Hamburguesas">Hamburguesas</option>
+                                    <option value="Postres">Postres</option>
+                                    <option value="Bebidas">Bebidas</option>
+                                    <option value="Bebidas Alcohólicas">Bebidas Alcohólicas</option>
+                                    <option value="Desayunos">Desayunos</option>
+                                    <option value="Especialidades">Especialidades</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Orden" class="form-label fw-bold">
+                                    <i class="bi bi-sort-numeric-down"></i> Orden
+                                </label>
+                                <input asp-for="Orden" class="form-control" type="number" />
+                            </div>
+                        </div>
+
+                        <!-- Detalles Nutricionales -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="border-bottom pb-2 mb-3">
+                                    <i class="bi bi-heart-pulse text-danger"></i> Información Nutricional
+                                </h4>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Ingredientes" class="form-label fw-bold">Ingredientes</label>
+                                <textarea asp-for="Ingredientes" class="form-control" rows="2"></textarea>
+                            </div>
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Alergenos" class="form-label fw-bold">Alérgenos</label>
+                                <input asp-for="Alergenos" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Calorias" class="form-label fw-bold">Calorías</label>
+                                <input asp-for="Calorias" class="form-control" type="number" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="TiempoPreparacion" class="form-label fw-bold">Tiempo (min)</label>
+                                <input asp-for="TiempoPreparacion" class="form-control" type="number" />
+                            </div>
+                        </div>
+
+                        <!-- Características -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="border-bottom pb-2 mb-3">
+                                    <i class="bi bi-tags text-success"></i> Características
+                                </h4>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="Disponible" class="form-check-input" type="checkbox" />
+                                    <label asp-for="Disponible" class="form-check-label fw-bold">Disponible</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="RecomendacionChef" class="form-check-input" type="checkbox" />
+                                    <label asp-for="RecomendacionChef" class="form-check-label fw-bold">Recomendación Chef</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="EsVegetariano" class="form-check-input" type="checkbox" />
+                                    <label asp-for="EsVegetariano" class="form-check-label fw-bold">Vegetariano</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="EsVegano" class="form-check-input" type="checkbox" />
+                                    <label asp-for="EsVegano" class="form-check-label fw-bold">Vegano</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="SinGluten" class="form-check-input" type="checkbox" />
+                                    <label asp-for="SinGluten" class="form-check-label fw-bold">Sin Gluten</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check form-switch">
+                                    <input asp-for="Picante" class="form-check-input" type="checkbox" />
+                                    <label asp-for="Picante" class="form-check-label fw-bold">Picante</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h4 class="border-bottom pb-2 mb-3">
+                                    <i class="bi bi-image text-warning"></i> Imagen
+                                </h4>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                            {
+                                <div class="col-12 mb-3 text-center">
+                                    <p class="fw-bold">Imagen Actual:</p>
+                                    <img src="@Model.ImagenUrl" alt="@Model.Nombre" 
+                                         style="max-width: 300px; border-radius: 10px;" />
+                                </div>
+                            }
+
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="ImagenArchivo" class="form-label fw-bold">
+                                    Cambiar Imagen
+                                </label>
+                                <input asp-for="ImagenArchivo" class="form-control" type="file" 
+                                       accept="image/*" onchange="previewImage(event)" />
+                            </div>
+
+                            <div class="col-md-12 mb-3 text-center">
+                                <div id="imagePreview" class="d-none">
+                                    <p class="fw-bold">Vista Previa:</p>
+                                    <img id="preview" src="" alt="Preview" 
+                                         style="max-width: 300px; border-radius: 10px;" />
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label asp-for="ImagenUrlExterna" class="form-label fw-bold">
+                                    O URL de imagen
+                                </label>
+                                <input asp-for="ImagenUrlExterna" class="form-control" />
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a asp-action="Index" asp-route-restauranteId="@Model.RestauranteId" 
+                                       class="btn btn-outline-secondary btn-lg px-5">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-warning btn-lg px-5">
+                                        <i class="bi bi-check-circle"></i> Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewImage(event) {
+            const preview = document.getElementById('preview');
+            const previewDiv = document.getElementById('imagePreview');
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    previewDiv.classList.remove('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+}

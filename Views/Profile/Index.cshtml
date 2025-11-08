@@ -1,0 +1,447 @@
+@model DondeComemos.Models.UserProfile
+
+@{
+    ViewData["Title"] = "Mi Perfil";
+    var userEmail = ViewBag.Email;
+}
+
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        color: white;
+        margin-bottom: -50px;
+    }
+    .profile-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .profile-photo {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 5px solid white;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    .section-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+    .tab-modern {
+        border: none;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .nav-pills .nav-link {
+        border-radius: 0;
+        color: #666;
+        font-weight: 600;
+        padding: 15px 30px;
+        transition: all 0.3s;
+    }
+    .nav-pills .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+</style>
+
+<div class="profile-header">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-2">Mi Perfil</h1>
+        <p class="lead">Personaliza tu experiencia en DondeComemos</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row">
+        <!-- Tarjeta de Perfil -->
+        <div class="col-lg-4">
+            <div class="profile-card bg-white p-4 text-center position-relative" style="margin-top: 30px;">
+                <div class="mb-4">
+                    @if (!string.IsNullOrEmpty(Model.FotoPerfil))
+                    {
+                        <img src="@Model.FotoPerfil" alt="Foto de perfil" class="profile-photo" id="profilePhoto" />
+                    }
+                    else
+                    {
+                        <div class="profile-photo bg-primary d-flex align-items-center justify-content-center mx-auto">
+                            <i class="bi bi-person-fill text-white" style="font-size: 4rem;"></i>
+                        </div>
+                    }
+                </div>
+
+                <h3 class="fw-bold mb-1">@(Model.NombreUsuario ?? "Usuario")</h3>
+                <p class="text-muted mb-3">@userEmail</p>
+
+                @if (!string.IsNullOrEmpty(Model.Biografia))
+                {
+                    <p class="text-muted small mb-4">@Model.Biografia</p>
+                }
+
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#changePhotoModal">
+                        <i class="bi bi-camera"></i> Cambiar Foto
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.FotoPerfil))
+                    {
+                        <form asp-action="DeletePhoto" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger w-100" 
+                                    onclick="return confirm('¿Eliminar foto de perfil?')">
+                                <i class="bi bi-trash"></i> Eliminar Foto
+                            </button>
+                        </form>
+                    }
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="text-start">
+                    <h6 class="text-muted mb-3">INFORMACIÓN</h6>
+                    <p class="mb-2">
+                        <i class="bi bi-envelope text-primary"></i>
+                        <small class="ms-2">@userEmail</small>
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Telefono))
+                    {
+                        <p class="mb-2">
+                            <i class="bi bi-telephone text-success"></i>
+                            <small class="ms-2">@Model.Telefono</small>
+                        </p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Ciudad))
+                    {
+                        <p class="mb-2">
+                            <i class="bi bi-geo-alt text-danger"></i>
+                            <small class="ms-2">@Model.Ciudad</small>
+                        </p>
+                    }
+                    <p class="mb-2">
+                        <i class="bi bi-calendar text-info"></i>
+                        <small class="ms-2">Miembro desde @Model.FechaCreacion.ToString("MMM yyyy")</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="col-lg-8">
+            <div class="section-card" style="margin-top: 30px;">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <i class="bi bi-check-circle"></i> @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="bi bi-x-circle"></i> @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Tabs -->
+                <!-- Tabs -->
+<ul class="nav nav-pills mb-4 tab-modern" id="profileTabs" role="tablist">
+    <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link active w-100" id="info-tab" data-bs-toggle="pill" 
+                data-bs-target="#info" type="button">
+            <i class="bi bi-person"></i> Información Personal
+        </button>
+    </li>
+    <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link w-100" id="reservas-tab" data-bs-toggle="pill" 
+                data-bs-target="#reservas" type="button">
+            <i class="bi bi-calendar-check"></i> Mis Reservas
+        </button>
+    </li>
+    <li class="nav-item flex-fill" role="presentation">
+        <button class="nav-link w-100" id="security-tab" data-bs-toggle="pill" 
+                data-bs-target="#security" type="button">
+            <i class="bi bi-shield-lock"></i> Seguridad
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="profileTabContent">
+    <!-- Información Personal -->
+    <div class="tab-pane fade show active" id="info" role="tabpanel">
+        <!-- Contenido existente de información personal... -->
+    </div>
+
+    <!-- Mis Reservas -->
+    <div class="tab-pane fade" id="reservas" role="tabpanel">
+        <h5 class="mb-4 fw-bold">
+            <i class="bi bi-calendar-check text-success"></i> Mis Reservas Recientes
+        </h5>
+        
+        <div class="text-center py-4">
+            <a asp-controller="Reservas" asp-action="Index" 
+               class="btn btn-primary btn-lg">
+                <i class="bi bi-calendar-check"></i> Ver Todas Mis Reservas
+            </a>
+        </div>
+
+        <div id="reservasQuickView" class="mt-4">
+            <p class="text-muted text-center">
+                Cargando reservas...
+            </p>
+        </div>
+    </div>
+
+    <!-- Seguridad -->
+    <div class="tab-pane fade" id="security" role="tabpanel">
+        <!-- Contenido existente de seguridad... -->
+    </div>
+</div>
+
+                <div class="tab-content" id="profileTabContent">
+                    <!-- Información Personal -->
+                    <div class="tab-pane fade show active" id="info" role="tabpanel">
+                        <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                            <input type="hidden" asp-for="UserId" />
+                            <input type="hidden" asp-for="FotoPerfil" />
+
+                            <h5 class="mb-4 fw-bold">
+                                <i class="bi bi-person-badge text-primary"></i> Información Personal
+                            </h5>
+
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label asp-for="NombreUsuario" class="form-label fw-bold">
+                                        Nombre de Usuario *
+                                    </label>
+                                    <input asp-for="NombreUsuario" class="form-control form-control-lg" 
+                                           placeholder="Cómo quieres que te llamen" />
+                                    <small class="text-muted">Este nombre aparecerá en tus reseñas</small>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Nombres" class="form-label fw-bold">
+                                        Nombres
+                                    </label>
+                                    <input asp-for="Nombres" class="form-control" 
+                                           placeholder="Tu(s) nombre(s)" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Apellidos" class="form-label fw-bold">
+                                        Apellidos
+                                    </label>
+                                    <input asp-for="Apellidos" class="form-control" 
+                                           placeholder="Tus apellidos" />
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label asp-for="Biografia" class="form-label fw-bold">
+                                        Biografía
+                                    </label>
+                                    <textarea asp-for="Biografia" class="form-control" rows="3"
+                                              placeholder="Cuéntanos algo sobre ti..."></textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="Telefono" class="form-label fw-bold">
+                                        Teléfono
+                                    </label>
+                                    <input asp-for="Telefono" class="form-control" 
+                                           placeholder="+51 999 999 999" />
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="FechaNacimiento" class="form-label fw-bold">
+                                        Fecha de Nacimiento
+                                    </label>
+                                    <input asp-for="FechaNacimiento" class="form-control" type="date" />
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label asp-for="Ciudad" class="form-label fw-bold">
+                                        Ciudad
+                                    </label>
+                                    <input asp-for="Ciudad" class="form-control" 
+                                           placeholder="Arequipa, Perú" />
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg"
+                                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                    <i class="bi bi-check-circle"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Seguridad -->
+                    <div class="tab-pane fade" id="security" role="tabpanel">
+                        <h5 class="mb-4 fw-bold">
+                            <i class="bi bi-shield-lock text-danger"></i> Cambiar Contraseña
+                        </h5>
+
+                        <form asp-action="ChangePassword" method="post">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">
+                                        Contraseña Actual *
+                                    </label>
+                                    <input type="password" name="currentPassword" class="form-control form-control-lg" 
+                                           placeholder="Ingresa tu contraseña actual" required />
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">
+                                        Nueva Contraseña *
+                                    </label>
+                                    <input type="password" name="newPassword" class="form-control form-control-lg" 
+                                           placeholder="Mínimo 6 caracteres" required id="newPassword" />
+                                    <div class="password-strength mt-2">
+                                        <div class="strength-bar bg-light" style="height: 4px; border-radius: 2px; overflow: hidden;">
+                                            <div id="strengthBar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
+                                        </div>
+                                        <small id="strengthText" class="text-muted">Mínimo 6 caracteres</small>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">
+                                        Confirmar Nueva Contraseña *
+                                    </label>
+                                    <input type="password" name="confirmPassword" class="form-control form-control-lg" 
+                                           placeholder="Repite la nueva contraseña" required />
+                                </div>
+                            </div>
+
+                            <hr class="my-4" />
+
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Nota:</strong> Después de cambiar tu contraseña, deberás iniciar sesión nuevamente.
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="bi bi-key"></i> Cambiar Contraseña
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Cambiar Foto -->
+<div class="modal fade" id="changePhotoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-camera"></i> Cambiar Foto de Perfil
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="UserId" />
+                <input type="hidden" asp-for="NombreUsuario" />
+                
+                <div class="modal-body">
+                    <div class="mb-3 text-center">
+                        <div id="photoPreview" class="mb-3">
+                            @if (!string.IsNullOrEmpty(Model.FotoPerfil))
+                            {
+                                <img src="@Model.FotoPerfil" alt="Preview" id="previewImg"
+                                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <div id="previewPlaceholder" class="bg-light d-inline-flex align-items-center justify-content-center"
+                                     style="width: 150px; height: 150px; border-radius: 50%;">
+                                    <i class="bi bi-person-fill text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <label class="form-label fw-bold">Seleccionar nueva foto</label>
+                    <input asp-for="FotoArchivo" class="form-control" type="file" 
+                           accept="image/*" onchange="previewPhoto(event)" />
+                    <small class="text-muted">JPG, PNG o GIF. Máximo 5MB</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Guardar Foto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewImg = document.getElementById('previewImg');
+                    const placeholder = document.getElementById('previewPlaceholder');
+                    
+                    if (previewImg) {
+                        previewImg.src = e.target.result;
+                    } else if (placeholder) {
+                        placeholder.outerHTML = `<img src="${e.target.result}" id="previewImg" 
+                            style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;" />`;
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Medidor de fortaleza de contraseña
+        document.getElementById('newPassword')?.addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            
+            const colors = ['#e74c3c', '#e67e22', '#f39c12', '#2ecc71', '#27ae60'];
+            const texts = ['Muy débil', 'Débil', 'Aceptable', 'Fuerte', 'Muy fuerte'];
+            const widths = ['20%', '40%', '60%', '80%', '100%'];
+            
+            if (password.length === 0) {
+                strengthBar.style.width = '0%';
+                strengthText.textContent = 'Mínimo 6 caracteres';
+                strengthText.style.color = '#888';
+            } else {
+                strengthBar.style.width = widths[strength - 1] || '20%';
+                strengthBar.style.backgroundColor = colors[strength - 1] || '#e74c3c';
+                strengthText.textContent = texts[strength - 1] || 'Muy débil';
+                strengthText.style.color = colors[strength - 1] || '#e74c3c';
+            }
+        });
+    </script>
+}

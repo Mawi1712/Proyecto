@@ -1,0 +1,159 @@
+@model DondeComemos.Models.Contacto
+
+@{
+    ViewBag.Title = "Contacto";
+}
+
+<section class="bg-dark text-white py-5">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-envelope-heart"></i> Contáctanos
+        </h1>
+        <p class="lead">Estamos aquí para ayudarte. ¡Escríbenos!</p>
+    </div>
+</section>
+
+<div class="container py-5">
+    @if (ViewData["Mensaje"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+            <i class="bi bi-check-circle-fill fs-3 d-block mb-2"></i>
+            <h5>@ViewData["Mensaje"]</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Envíanos un Mensaje</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" asp-action="Registrar">
+                        <div class="mb-3">
+                            <label asp-for="Nombre" class="form-label fw-bold">
+                                <i class="bi bi-person"></i> Nombre Completo
+                            </label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Juan Pérez" />                                                             
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>   
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold">
+                                <i class="bi bi-envelope"></i> Correo Electrónico
+                            </label>
+                            <input asp-for="Email" class="form-control" placeholder="ejemplo@correo.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Satisfaccion" class="form-label fw-bold">
+                                <i class="bi bi-emoji-smile"></i> Nivel de Satisfacción (1-10)
+                            </label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input asp-for="Satisfaccion" type="range" class="form-range" 
+                                       min="1" max="10" value="10" 
+                                       oninput="document.getElementById('satisfactionValue').textContent = this.value" />
+                                <span class="badge bg-success fs-4" id="satisfactionValue">10</span>
+                            </div>
+                            <span asp-validation-for="Satisfaccion" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Mensaje" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text"></i> Tu Mensaje
+                            </label>
+                            <textarea asp-for="Mensaje" class="form-control" rows="6" 
+                                      placeholder="Escribe aquí tu mensaje, consulta o comentario..."></textarea>
+                            <span asp-validation-for="Mensaje" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" asp-for="InPositive" checked />
+                                <label class="form-check-label" asp-for="InPositive">
+                                    Acepto recibir comunicaciones de DondeComemos
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send-fill"></i> Enviar Mensaje
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">
+                        <i class="bi bi-info-circle-fill text-primary"></i> Información de Contacto
+                    </h5>
+                    
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-geo-alt-fill text-danger fs-4 me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Dirección</h6>
+                            <p class="text-muted mb-0">Av. Principal 123, Arequipa, Perú</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-telephone-fill text-success fs-4 me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Teléfono</h6>
+                            <p class="text-muted mb-0">+51 999 999 999</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start mb-3">
+                        <i class="bi bi-envelope-fill text-primary fs-4 me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Email</h6>
+                            <p class="text-muted mb-0">contacto@dondecomemos.com</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-clock-fill text-warning fs-4 me-3"></i>
+                        <div>
+                            <h6 class="mb-1 fw-bold">Horario de Atención</h6>
+                            <p class="text-muted mb-0">
+                                Lunes a Viernes: 9:00 AM - 6:00 PM<br>
+                                Sábados: 10:00 AM - 2:00 PM
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 text-center">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-share-fill"></i> Síguenos en Redes Sociales
+                    </h5>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="#" class="btn btn-outline-primary rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-facebook fs-5"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-info rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-twitter fs-5"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-danger rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-instagram fs-5"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

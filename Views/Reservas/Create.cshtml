@@ -1,0 +1,339 @@
+@model DondeComemos.Models.Reserva
+
+@{
+    ViewData["Title"] = "Nueva Reserva";
+    var restaurante = ViewBag.Restaurante as DondeComemos.Models.Restaurante;
+    var productos = ViewBag.Productos as IEnumerable<DondeComemos.Models.Producto>;
+}
+
+<style>
+    .reservation-hero {
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                    url('@(restaurante?.ImagenUrl ?? "")') center/cover;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    .product-selector {
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .product-selector:hover {
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+    .product-selector.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    }
+    .quantity-control {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .product-selector.selected .quantity-control {
+        display: flex;
+    }
+    .quantity-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: 2px solid #667eea;
+        background: white;
+        color: #667eea;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .quantity-btn:hover {
+        background: #667eea;
+        color: white;
+    }
+</style>
+
+<div class="reservation-hero">
+    <div class="container">
+        <h1 class="display-4 fw-bold">
+            <i class="bi bi-calendar-plus"></i> Nueva Reserva
+        </h1>
+        <p class="lead">@restaurante?.Nombre</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-x-circle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form asp-action="Create" method="post" id="reservationForm">
+        <input type="hidden" asp-for="RestauranteId" />
+        <input type="hidden" name="productosJson" id="productosJson" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row g-4">
+            <!-- Información de la Reserva -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-info-circle"></i> Información de Reserva
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label asp-for="FechaReserva" class="form-label fw-bold">
+                                <i class="bi bi-calendar3"></i> Fecha *
+                            </label>
+                            <input asp-for="FechaReserva" class="form-control form-control-lg" 
+                                   type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="FechaReserva" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="HoraReserva" class="form-label fw-bold">
+                                <i class="bi bi-clock"></i> Hora *
+                            </label>
+                            <input asp-for="HoraReserva" class="form-control form-control-lg" 
+                                   type="time" value="19:00" />
+                            <span asp-validation-for="HoraReserva" class="text-danger small"></span>
+                            <small class="text-muted">
+                                Horario del restaurante: @(restaurante?.Horario ?? "Consultar")
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NumeroPersonas" class="form-label fw-bold">
+                                <i class="bi bi-people"></i> Número de Personas *
+                            </label>
+                            <select asp-for="NumeroPersonas" class="form-select form-select-lg">
+                                @for (int i = 1; i <= 20; i++)
+                                {
+                                    <option value="@i" selected="@(i == 2)">@i @(i == 1 ? "persona" : "personas")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="NumeroPersonas" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NotasEspeciales" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text"></i> Notas Especiales
+                            </label>
+                            <textarea asp-for="NotasEspeciales" class="form-control" rows="4"
+                                      placeholder="Alergias, preferencias de mesa, celebraciones, etc."></textarea>
+                            <small class="text-muted">Opcional: Requisitos especiales o peticiones</small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Importante:</strong> La reserva está sujeta a confirmación del restaurante.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                <i class="bi bi-check-circle"></i> Crear Reserva
+                            </button>
+                            <a asp-controller="Restaurantes" asp-action="Details" 
+                               asp-route-id="@restaurante?.Id"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selección de Platos -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white py-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-menu-button-wide"></i> Selecciona tus Platos (Opcional)
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4">
+                            Pre-ordena los platos que deseas para agilizar tu experiencia
+                        </p>
+
+                        @if (productos != null && productos.Any())
+                        {
+                            <div id="productsContainer" style="max-height: 600px; overflow-y: auto;">
+                                @foreach (var categoria in productos.GroupBy(p => p.Categoria))
+                                {
+                                    <div class="mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2 mb-3">
+                                            <i class="bi bi-bookmark-fill text-primary"></i> @categoria.Key
+                                        </h5>
+
+                                        @foreach (var producto in categoria)
+                                        {
+                                            <div class="product-selector mb-3" data-product-id="@producto.Id">
+                                                <div class="d-flex align-items-start">
+                                                    @if (!string.IsNullOrEmpty(producto.ImagenUrl))
+                                                    {
+                                                        <img src="@producto.ImagenUrl" alt="@producto.Nombre"
+                                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;"
+                                                             class="me-3" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-light d-flex align-items-center justify-content-center me-3"
+                                                             style="width: 80px; height: 80px; border-radius: 10px;">
+                                                            <i class="bi bi-image text-muted"></i>
+                                                        </div>
+                                                    }
+
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="fw-bold mb-1">@producto.Nombre</h6>
+                                                        @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                                        {
+                                                            <p class="text-muted small mb-2">
+                                                                @(producto.Descripcion.Length > 100 ? 
+                                                                  producto.Descripcion.Substring(0, 100) + "..." : 
+                                                                  producto.Descripcion)
+                                                            </p>
+                                                        }
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <strong class="text-success">S/ @producto.Precio.ToString("0.00")</strong>
+                                                            @if (producto.RecomendacionChef)
+                                                            {
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <i class="bi bi-star-fill"></i> Chef
+                                                                </span>
+                                                            }
+                                                        </div>
+
+                                                        <div class="quantity-control">
+                                                            <span class="text-muted small">Cantidad:</span>
+                                                            <button type="button" class="quantity-btn quantity-minus">-</button>
+                                                            <input type="number" class="form-control form-control-sm text-center quantity-input" 
+                                                                   value="1" min="1" max="20" style="width: 60px;" readonly />
+                                                            <button type="button" class="quantity-btn quantity-plus">+</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                No hay productos disponibles en el menú actual
+                            </div>
+                        }
+
+                        <div id="selectedSummary" class="alert alert-success d-none mt-3">
+                            <h6 class="fw-bold">
+                                <i class="bi bi-check-circle"></i> Platos Seleccionados
+                            </h6>
+                            <ul id="selectedList" class="list-unstyled mb-0"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const selectedProducts = new Map();
+
+        document.querySelectorAll('.product-selector').forEach(selector => {
+            selector.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quantity-btn') || e.target.classList.contains('quantity-input')) {
+                    return;
+                }
+                
+                this.classList.toggle('selected');
+                const productId = this.dataset.productId;
+                
+                if (this.classList.contains('selected')) {
+                    const productName = this.querySelector('h6').textContent;
+                    selectedProducts.set(productId, {
+                        ProductoId: parseInt(productId),
+                        Cantidad: 1,
+                        Nombre: productName
+                    });
+                } else {
+                    selectedProducts.delete(productId);
+                }
+                
+                updateSummary();
+            });
+
+            const minusBtn = selector.querySelector('.quantity-minus');
+            const plusBtn = selector.querySelector('.quantity-plus');
+            const quantityInput = selector.querySelector('.quantity-input');
+
+            minusBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    value--;
+                    quantityInput.value = value;
+                    const productId = selector.dataset.productId;
+                    if (selectedProducts.has(productId)) {
+                        selectedProducts.get(productId).Cantidad = value;
+                        updateSummary();
+                    }
+                }
+            });
+
+            plusBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                let value = parseInt(quantityInput.value);
+                if (value < 20) {
+                    value++;
+                    quantityInput.value = value;
+                    const productId = selector.dataset.productId;
+                    if (selectedProducts.has(productId)) {
+                        selectedProducts.get(productId).Cantidad = value;
+                        updateSummary();
+                    }
+                }
+            });
+        });
+
+        function updateSummary() {
+            const summary = document.getElementById('selectedSummary');
+            const list = document.getElementById('selectedList');
+            
+            if (selectedProducts.size === 0) {
+                summary.classList.add('d-none');
+                return;
+            }
+
+            summary.classList.remove('d-none');
+            list.innerHTML = '';
+            
+            selectedProducts.forEach(product => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="bi bi-check2"></i> ${product.Nombre} x${product.Cantidad}`;
+                list.appendChild(li);
+            });
+
+            const productosArray = Array.from(selectedProducts.values());
+            document.getElementById('productosJson').value = JSON.stringify(productosArray);
+        }
+
+        document.getElementById('reservationForm').addEventListener('submit', function(e) {
+            updateSummary();
+        });
+    </script>
+}

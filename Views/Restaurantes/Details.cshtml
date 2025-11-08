@@ -1,0 +1,388 @@
+@model DondeComemos.Models.Restaurante
+
+@{
+    ViewData["Title"] = Model.Nombre;
+}
+
+<style>
+    .restaurant-header {
+        background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
+                    url('@Model.ImagenUrl') center/cover;
+        height: 400px;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    .menu-item-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        border-radius: 15px;
+    }
+    .menu-item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .menu-item-img {
+        height: 200px;
+        object-fit: cover;
+        border-radius: 15px 15px 0 0;
+    }
+</style>
+
+<!-- Header del Restaurante -->
+<div class="restaurant-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1 class="display-3 fw-bold mb-3">@Model.Nombre</h1>
+                <div class="d-flex align-items-center gap-4 mb-3">
+                    <div class="text-warning fs-4">
+                        @for (int i = 0; i < (int)Model.Rating; i++)
+                        {
+                            <i class="bi bi-star-fill"></i>
+                        }
+                        <span class="text-white ms-2">@Model.Rating.ToString("0.0")</span>
+                    </div>
+                    <span class="badge bg-primary fs-6">@Model.TipoCocina</span>
+                    <span class="badge bg-success fs-6">@Model.RangoPrecios</span>
+                </div>
+                <p class="lead">
+                    <i class="bi bi-geo-alt"></i> @Model.Direccion
+                </p>
+            </div>
+            
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <div>
+                    @if (User.Identity?.IsAuthenticated ?? false)
+{
+    <div class="d-flex gap-2">
+        <a asp-controller="Reservas" asp-action="Create" 
+           asp-route-restauranteId="@Model.Id"
+           class="btn btn-success btn-lg">
+            <i class="bi bi-calendar-plus"></i> Hacer Reserva
+        </a>
+        
+        <form asp-controller="Favoritos" asp-action="Agregar" method="post" id="favoritoForm">
+            <input type="hidden" name="restauranteId" value="@Model.Id" />
+            <button type="submit" class="btn btn-light btn-lg" id="btnFavorito">
+                <i class="bi bi-heart" id="iconFavorito"></i>
+                <span id="textoFavorito">Favoritos</span>
+            </button>
+        </form>
+    </div>
+}
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Verificar si el restaurante es favorito
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <text>
+            fetch('/Favoritos/EsFavorito?restauranteId=@Model.Id')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.esFavorito) {
+                        document.getElementById('iconFavorito').className = 'bi bi-heart-fill text-danger';
+                        document.getElementById('textoFavorito').textContent = 'En Favoritos';
+                        document.getElementById('btnFavorito').classList.add('active');
+                    }
+                });
+            </text>
+        }
+    </script>
+}
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Información del Restaurante -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-body p-4">
+                    <h4 class="mb-3">
+                        <i class="bi bi-info-circle text-primary"></i> Información
+                    </h4>
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Descripción</h6>
+                        <p>@Model.Descripcion</p>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Telefono))
+                    {
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="bi bi-telephone"></i> Teléfono
+                            </h6>
+                            <p><a href="tel:@Model.Telefono">@Model.Telefono</a></p>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.Horario))
+                    {
+                        <div class="mb-3">
+                            <h6 class="text-muted mb-2">
+                                <i class="bi bi-clock"></i> Horario
+                            </h6>
+                            <p>@Model.Horario</p>
+                        </div>
+                    }
+
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">
+                            <i class="bi bi-gear"></i> Servicios
+                        </h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (Model.DeliveryDisponible)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-truck"></i> Delivery
+                                </span>
+                            }
+                            @if (Model.AceptaReservas)
+                            {
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-calendar-check"></i> Reservas
+                                </span>
+                            }
+                            @if (Model.TieneEstacionamiento)
+                            {
+                                <span class="badge bg-info">
+                                    <i class="bi bi-car-front"></i> Estacionamiento
+                                </span>
+                            }
+                            @if (Model.WifiGratis)
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-wifi"></i> WiFi
+                                </span>
+                            }
+                            @if (Model.OpcionesVegetarianas)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-leaf"></i> Vegetariano
+                                </span>
+                            }
+                            @if (Model.OpcionesVeganas)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-flower1"></i> Vegano
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.GoogleMapsUrl))
+                    {
+                        <div class="d-grid gap-2 mb-3">
+                            <a href="@Model.GoogleMapsUrl" target="_blank" 
+                               class="btn btn-primary">
+                                <i class="bi bi-map"></i> Ver en Google Maps
+                            </a>
+                        </div>
+                    }
+
+                    <!-- Redes Sociales -->
+                    <div class="d-flex gap-2">
+                        @if (!string.IsNullOrEmpty(Model.SitioWeb))
+                        {
+                            <a href="@Model.SitioWeb" target="_blank" 
+                               class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-globe"></i>
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Facebook))
+                        {
+                            <a href="@Model.Facebook" target="_blank" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-facebook"></i>
+                            </a>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Instagram))
+                        {
+                            <a href="@Model.Instagram" target="_blank" 
+                               class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-instagram"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menú del Restaurante -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold">
+                    <i class="bi bi-menu-button-wide text-primary"></i> Nuestro Menú
+                </h3>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Productos" asp-action="Create" 
+                       asp-route-restauranteId="@Model.Id"
+                       class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Agregar Producto
+                    </a>
+                }
+            </div>
+
+            @if (!Model.Productos.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                    <h5>Aún no hay productos en el menú</h5>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <p>Comienza agregando los platos que ofrece este restaurante</p>
+                        <a asp-controller="Productos" asp-action="Create" 
+                           asp-route-restauranteId="@Model.Id"
+                           class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Agregar Primer Producto
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                @foreach (var categoria in Model.Productos.GroupBy(p => p.Categoria))
+                {
+                    <div class="mb-5">
+                        <h4 class="border-bottom pb-2 mb-4">
+                            <i class="bi bi-bookmark-fill text-primary"></i> @categoria.Key
+                        </h4>
+
+                        <div class="row g-4">
+                            @foreach (var producto in categoria.OrderBy(p => p.Orden))
+                            {
+                                <div class="col-md-6">
+                                    <div class="card menu-item-card shadow-sm h-100">
+                                        @if (!string.IsNullOrEmpty(producto.ImagenUrl))
+                                        {
+                                            <img src="@producto.ImagenUrl" 
+                                                 class="menu-item-img" 
+                                                 alt="@producto.Nombre" />
+                                        }
+                                        else
+                                        {
+                                            <div class="menu-item-img bg-light d-flex align-items-center justify-content-center">
+                                                <i class="bi bi-image display-4 text-muted"></i>
+                                            </div>
+                                        }
+                                        
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title mb-0">@producto.Nombre</h5>
+                                                @if (producto.RecomendacionChef)
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-star-fill"></i>
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                            {
+                                                <p class="card-text text-muted small">
+                                                    @producto.Descripcion
+                                                </p>
+                                            }
+
+                                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                                @if (producto.EsVegetariano)
+                                                {
+                                                    <span class="badge bg-success" title="Vegetariano">
+                                                        <i class="bi bi-leaf"></i>
+                                                    </span>
+                                                }
+                                                @if (producto.EsVegano)
+                                                {
+                                                    <span class="badge bg-success" title="Vegano">
+                                                        <i class="bi bi-flower1"></i>
+                                                    </span>
+                                                }
+                                                @if (producto.SinGluten)
+                                                {
+                                                    <span class="badge bg-info" title="Sin Gluten">
+                                                        <i class="bi bi-shield-check"></i>
+                                                    </span>
+                                                }
+                                                @if (producto.Picante)
+                                                {
+                                                    <span class="badge bg-danger" title="Picante">
+                                                        <i class="bi bi-fire"></i>
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h4 class="text-success mb-0">
+                                                    S/ @producto.Precio.ToString("0.00")
+                                                </h4>
+                                                @if (producto.TiempoPreparacion.HasValue)
+                                                {
+                                                    <small class="text-muted">
+                                                        <i class="bi bi-clock"></i> @producto.TiempoPreparacion min
+                                                    </small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <!-- Reseñas -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="fw-bold mb-4">
+                <i class="bi bi-chat-left-text text-primary"></i> Reseñas
+            </h3>
+
+            @if (!Model.Resenas.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                    <h5>Aún no hay reseñas</h5>
+                    <p>¡Sé el primero en compartir tu experiencia!</p>
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var resena in Model.Resenas.Take(6))
+                    {
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <h5 class="mb-0">@resena.Titulo</h5>
+                                        <div class="text-warning">
+                                            @for (int i = 0; i < (int)resena.Calificacion; i++)
+                                            {
+                                                <i class="bi bi-star-fill"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <p class="card-text">@resena.Comentario</p>
+                                    <small class="text-muted">
+                                        @resena.FechaCreacion.ToString("dd/MM/yyyy")
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

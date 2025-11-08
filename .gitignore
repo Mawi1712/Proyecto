@@ -1,0 +1,41 @@
+# Visual Studio / .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider, VSCode
+.idea/
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+
+# ASP.NET / other
+appsettings*.json
+!appsettings.Development.json
+secrets.json
+wwwroot/lib/
+
+# SQLite files
+*.db
+*.db-shm
+*.db-wal
+
+# Uploads (archivos subidos por usuarios)
+wwwroot/uploads/*
+!wwwroot/uploads/.gitkeep
+!wwwroot/uploads/restaurantes/.gitkeep
+!wwwroot/uploads/productos/.gitkeep
+!wwwroot/uploads/perfiles/.gitkeep
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db
+.DS_Store

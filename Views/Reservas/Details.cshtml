@@ -1,0 +1,275 @@
+@model DondeComemos.Models.Reserva
+
+@{
+    ViewData["Title"] = "Detalles de Reserva";
+    var fechaHora = Model.FechaReserva.Date + Model.HoraReserva;
+    var esPasada = fechaHora < DateTime.Now;
+}
+
+<style>
+    .details-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        color: white;
+    }
+    .info-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        padding: 10px 30px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="details-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-receipt"></i> Detalles de Reserva
+        </h1>
+        <p class="lead">Código: @Model.CodigoReserva</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Información Principal -->
+        <div class="col-lg-8">
+            <div class="card info-card mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold mb-0">
+                            <i class="bi bi-shop text-primary"></i> @Model.Restaurante?.Nombre
+                        </h3>
+                        <span class="status-badge 
+                            @(Model.Estado == "Pendiente" ? "bg-warning text-dark" :
+                              Model.Estado == "Confirmada" ? "bg-info text-white" :
+                              Model.Estado == "Cancelada" ? "bg-danger text-white" :
+                              "bg-success text-white")">
+                            @Model.Estado
+                        </span>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-calendar3 text-primary fs-3 me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Fecha de Reserva</small>
+                                        <h5 class="mb-0">@Model.FechaReserva.ToString("dd MMMM yyyy")</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-clock text-success fs-3 me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Hora</small>
+                                        <h5 class="mb-0">@Model.HoraReserva.ToString(@"hh\:mm")</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-people text-info fs-3 me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Número de Personas</small>
+                                        <h5 class="mb-0">@Model.NumeroPersonas personas</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-hash text-warning fs-3 me-3"></i>
+                                    <div>
+                                        <small class="text-muted d-block">Código de Reserva</small>
+                                        <h5 class="mb-0">@Model.CodigoReserva</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.NotasEspeciales))
+                    {
+                        <div class="alert alert-info">
+                            <h6 class="fw-bold">
+                                <i class="bi bi-chat-left-text"></i> Notas Especiales
+                            </h6>
+                            <p class="mb-0">@Model.NotasEspeciales</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Platos Reservados -->
+            @if (Model.ProductosReservados.Any())
+            {
+                <div class="card info-card">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0">
+                            <i class="bi bi-menu-button-wide"></i> Platos Pre-ordenados
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Plato</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unit.</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        decimal total = 0;
+                                    }
+                                    @foreach (var item in Model.ProductosReservados)
+                                    {
+                                        var subtotal = item.Producto?.Precio ?? 0 * item.Cantidad;
+                                        total += subtotal;
+                                        
+                                        <tr>
+                                            <td>
+                                                <strong>@item.Producto?.Nombre</strong>
+                                                @if (!string.IsNullOrEmpty(item.NotasProducto))
+                                                {
+                                                    <br/>
+                                                    <small class="text-muted">Nota: @item.NotasProducto</small>
+                                                }
+                                            </td>
+                                            <td>@item.Cantidad</td>
+                                            <td>S/ @((item.Producto?.Precio ?? 0).ToString("0.00"))</td>
+                                            <td><strong>S/ @subtotal.ToString("0.00")</strong></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-light">
+                                        <td colspan="3" class="text-end"><strong>Total Estimado:</strong></td>
+                                        <td><h5 class="text-success mb-0">S/ @total.ToString("0.00")</h5></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="alert alert-warning small mb-0">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Nota:</strong> El total es estimado. Puedes modificar tu pedido al llegar al restaurante.
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Panel Lateral -->
+        <div class="col-lg-4">
+            <!-- Información del Usuario -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle"></i> Información del Cliente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <i class="bi bi-person text-primary"></i>
+                        <strong>Nombre:</strong> @Model.NombreUsuario
+                    </p>
+                    <p class="mb-2">
+                        <i class="bi bi-envelope text-success"></i>
+                        <strong>Email:</strong> @Model.EmailUsuario
+                    </p>
+                    <p class="mb-0">
+                        <i class="bi bi-calendar text-info"></i>
+                        <strong>Creada:</strong> @Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                    </p>
+                </div>
+            </div>
+
+            <!-- Información del Restaurante -->
+            <div class="card info-card mb-4">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shop"></i> Restaurante
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Restaurante?.Telefono))
+                    {
+                        <p class="mb-2">
+                            <i class="bi bi-telephone text-success"></i>
+                            <a href="tel:@Model.Restaurante.Telefono">@Model.Restaurante.Telefono</a>
+                        </p>
+                    }
+                    <p class="mb-2">
+                        <i class="bi bi-geo-alt text-danger"></i>
+                        @Model.Restaurante?.Direccion
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Restaurante?.Horario))
+                    {
+                        <p class="mb-0">
+                            <i class="bi bi-clock text-info"></i>
+                            @Model.Restaurante.Horario
+                        </p>
+                    }
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="card info-card">
+                <div class="card-body p-3">
+                    <div class="d-grid gap-2">
+                        <a asp-action="Index" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-left"></i> Volver a Mis Reservas
+                        </a>
+
+                        @if (Model.Estado != "Cancelada" && Model.Estado != "Completada" && !esPasada)
+                        {
+                            <a asp-action="Edit" asp-route-id="@Model.Id" 
+                               class="btn btn-warning">
+                                <i class="bi bi-pencil"></i> Editar Reserva
+                            </a>
+
+                            <form asp-action="Cancel" method="post">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn btn-danger w-100"
+                                        onclick="return confirm('¿Estás seguro de cancelar esta reserva?')">
+                                    <i class="bi bi-x-circle"></i> Cancelar Reserva
+                                </button>
+                            </form>
+                        }
+
+                        <a asp-controller="Restaurantes" asp-action="Details" 
+                           asp-route-id="@Model.RestauranteId"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-shop"></i> Ver Restaurante
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

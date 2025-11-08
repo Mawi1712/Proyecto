@@ -1,0 +1,41 @@
+@model DondeComemos.Models.Restaurante
+
+@{
+    ViewData["Title"] = "Editar Restaurante";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold">✏️ Editar Restaurante</h2>
+
+    <form asp-action="Edit">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label"></label>
+            <input asp-for="Nombre" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Direccion" class="form-label"></label>
+            <input asp-for="Direccion" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Descripcion" class="form-label"></label>
+            <textarea asp-for="Descripcion" class="form-control"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ImagenUrl" class="form-label"></label>
+            <input asp-for="ImagenUrl" class="form-control" />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Rating" class="form-label"></label>
+            <input asp-for="Rating" class="form-control" type="number" min="0" max="5" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

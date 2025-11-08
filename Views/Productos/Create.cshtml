@@ -1,0 +1,205 @@
+@model DondeComemos.Models.Producto
+
+@{
+    ViewData["Title"] = "Agregar Producto";
+    var restauranteId = ViewBag.RestauranteId;
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-gradient text-white py-4" 
+                     style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h2 class="mb-0 text-center">
+                        <i class="bi bi-plus-circle-fill"></i> Agregar Nuevo Producto
+                    </h2>
+                </div>
+                <div class="card-body p-5">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="RestauranteId" value="@restauranteId" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- Nombre del Producto -->
+                        <div class="mb-4">
+                            <label asp-for="Nombre" class="form-label fw-bold fs-5">
+                                <i class="bi bi-egg-fried text-primary"></i> Nombre del Plato *
+                            </label>
+                            <input asp-for="Nombre" class="form-control form-control-lg" 
+                                   placeholder="Ej: Lomo Saltado" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Precio -->
+                        <div class="mb-4">
+                            <label asp-for="Precio" class="form-label fw-bold fs-5">
+                                <i class="bi bi-cash-stack text-success"></i> Precio (S/) *
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">S/</span>
+                                <input asp-for="Precio" class="form-control" type="number" 
+                                       step="0.01" min="0" placeholder="25.00" />
+                            </div>
+                            <span asp-validation-for="Precio" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-4">
+                            <label asp-for="Descripcion" class="form-label fw-bold fs-5">
+                                <i class="bi bi-card-text text-info"></i> Descripción
+                            </label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="4"
+                                      placeholder="Describe el plato, sus ingredientes principales, sabor, etc."></textarea>
+                            <small class="text-muted">Opcional: Ayuda a los clientes a conocer mejor el plato</small>
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold fs-5">
+                                <i class="bi bi-image text-warning"></i> Imagen del Producto
+                            </label>
+                            
+                            <!-- Tabs para elegir método -->
+                            <ul class="nav nav-pills mb-3" id="imageTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="upload-tab" data-bs-toggle="pill" 
+                                            data-bs-target="#upload" type="button" role="tab">
+                                        <i class="bi bi-upload"></i> Subir Archivo
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="url-tab" data-bs-toggle="pill" 
+                                            data-bs-target="#url" type="button" role="tab">
+                                        <i class="bi bi-link-45deg"></i> URL de Imagen
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="imageTabContent">
+                                <!-- Subir Archivo -->
+                                <div class="tab-pane fade show active" id="upload" role="tabpanel">
+                                    <input asp-for="ImagenArchivo" class="form-control form-control-lg" 
+                                           type="file" accept="image/*,video/*" onchange="previewMedia(event)" />
+                                    <small class="form-text text-muted">
+                                        Formatos: JPG, PNG, GIF, MP4, WebM. Tamaño máximo: 5MB
+                                    </small>
+                                </div>
+
+                                <!-- URL Externa -->
+                                <div class="tab-pane fade" id="url" role="tabpanel">
+                                    <input asp-for="ImagenUrlExterna" class="form-control form-control-lg" 
+                                           placeholder="https://ejemplo.com/imagen.jpg" 
+                                           onchange="previewUrlMedia(this.value)" />
+                                    <small class="form-text text-muted">
+                                        Pega el enlace directo a una imagen o video
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Vista Previa -->
+                            <div id="mediaPreview" class="mt-3 text-center d-none">
+                                <p class="fw-bold">Vista Previa:</p>
+                                <img id="imagePreview" src="" alt="Preview" class="d-none"
+                                     style="max-width: 100%; max-height: 300px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" />
+                                <video id="videoPreview" controls class="d-none"
+                                     style="max-width: 100%; max-height: 300px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                                </video>
+                            </div>
+                        </div>
+
+                        <!-- Estado de Disponibilidad -->
+                        <div class="mb-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="form-check form-switch">
+                                        <input asp-for="Disponible" class="form-check-input" 
+                                               type="checkbox" checked style="width: 3em; height: 1.5em;" />
+                                        <label asp-for="Disponible" class="form-check-label fw-bold fs-5 ms-2">
+                                            <i class="bi bi-check-circle-fill text-success"></i> 
+                                            Producto Disponible
+                                        </label>
+                                    </div>
+                                    <small class="text-muted ms-5">
+                                        Desactiva si el producto no está disponible temporalmente
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                                    <a asp-action="Index" asp-route-restauranteId="@restauranteId" 
+                                       class="btn btn-outline-secondary btn-lg px-5">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg px-5"
+                                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                        <i class="bi bi-check-circle-fill"></i> Guardar Producto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function previewMedia(event) {
+            const file = event.target.files[0];
+            const mediaPreview = document.getElementById('mediaPreview');
+            const imagePreview = document.getElementById('imagePreview');
+            const videoPreview = document.getElementById('videoPreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                const fileType = file.type.split('/')[0];
+                
+                reader.onload = function(e) {
+                    mediaPreview.classList.remove('d-none');
+                    
+                    if (fileType === 'image') {
+                        imagePreview.src = e.target.result;
+                        imagePreview.classList.remove('d-none');
+                        videoPreview.classList.add('d-none');
+                    } else if (fileType === 'video') {
+                        videoPreview.src = e.target.result;
+                        videoPreview.classList.remove('d-none');
+                        imagePreview.classList.add('d-none');
+                    }
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function previewUrlMedia(url) {
+            const mediaPreview = document.getElementById('mediaPreview');
+            const imagePreview = document.getElementById('imagePreview');
+            const videoPreview = document.getElementById('videoPreview');
+            
+            if (url) {
+                mediaPreview.classList.remove('d-none');
+                
+                // Detectar si es video por extensión
+                const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+                const isVideo = videoExtensions.some(ext => url.toLowerCase().includes(ext));
+                
+                if (isVideo) {
+                    videoPreview.src = url;
+                    videoPreview.classList.remove('d-none');
+                    imagePreview.classList.add('d-none');
+                } else {
+                    imagePreview.src = url;
+                    imagePreview.classList.remove('d-none');
+                    videoPreview.classList.add('d-none');
+                }
+            }
+        }
+    </script>
+}

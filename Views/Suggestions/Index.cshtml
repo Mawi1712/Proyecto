@@ -1,0 +1,263 @@
+@model IEnumerable<DondeComemos.Models.Sugerencia>
+
+@{
+    ViewData["Title"] = "Sugerencias y Comentarios";
+    var sugerenciaModel = new DondeComemos.Models.Sugerencia();
+}
+
+<style>
+    .suggestion-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 0;
+        margin-bottom: 50px;
+    }
+    .suggestion-card {
+        border: none;
+        border-radius: 15px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .suggestion-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .category-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    .form-section {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 20px;
+        padding: 40px;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="suggestion-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-lightbulb"></i> Tu Opinión Cuenta
+        </h1>
+        <p class="lead">
+            Ayúdanos a mejorar compartiendo tus ideas y sugerencias
+        </p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-5">
+        <!-- Formulario de Sugerencias -->
+        <div class="col-lg-6">
+            <div class="form-section shadow-lg">
+                <h3 class="fw-bold mb-4">
+                    <i class="bi bi-pencil-square text-primary"></i> Nueva Sugerencia
+                </h3>
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Nombre" class="form-label fw-bold">
+                            <i class="bi bi-person"></i> Tu Nombre *
+                        </label>
+                        <input asp-for="@sugerenciaModel.Nombre" class="form-control" 
+                               placeholder="Juan Pérez" name="Nombre" />
+                        <span asp-validation-for="@sugerenciaModel.Nombre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Email" class="form-label fw-bold">
+                            <i class="bi bi-envelope"></i> Correo Electrónico *
+                        </label>
+                        <input asp-for="@sugerenciaModel.Email" class="form-control" 
+                               placeholder="correo@ejemplo.com" name="Email" type="email" />
+                        <span asp-validation-for="@sugerenciaModel.Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Categoria" class="form-label fw-bold">
+                            <i class="bi bi-tag"></i> Categoría *
+                        </label>
+                        <select asp-for="@sugerenciaModel.Categoria" class="form-select" name="Categoria">
+                            <option value="General">💬 General</option>
+                            <option value="Nuevo Restaurante">🍽️ Sugerir Nuevo Restaurante</option>
+                            <option value="Mejora de Funcionalidad">⚙️ Mejora de Funcionalidad</option>
+                            <option value="Reporte de Error">🐛 Reporte de Error</option>
+                            <option value="Solicitud de Función">✨ Solicitud de Nueva Función</option>
+                            <option value="Comentario Positivo">👍 Comentario Positivo</option>
+                            <option value="Queja">⚠️ Queja</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Titulo" class="form-label fw-bold">
+                            <i class="bi bi-card-heading"></i> Título *
+                        </label>
+                        <input asp-for="@sugerenciaModel.Titulo" class="form-control" 
+                               placeholder="Breve descripción de tu sugerencia" name="Titulo" />
+                        <span asp-validation-for="@sugerenciaModel.Titulo" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Contenido" class="form-label fw-bold">
+                            <i class="bi bi-chat-left-text"></i> Sugerencia *
+                        </label>
+                        <textarea asp-for="@sugerenciaModel.Contenido" class="form-control" rows="5"
+                                  placeholder="Cuéntanos más sobre tu sugerencia..." name="Contenido"></textarea>
+                        <span asp-validation-for="@sugerenciaModel.Contenido" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="@sugerenciaModel.Calificacion" class="form-label fw-bold">
+                            <i class="bi bi-star-fill text-warning"></i> ¿Cómo calificarías nuestra plataforma?
+                        </label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input asp-for="@sugerenciaModel.Calificacion" type="range" 
+                                   class="form-range" min="1" max="5" value="5" name="Calificacion"
+                                   oninput="document.getElementById('ratingValue').textContent = '⭐'.repeat(this.value)" />
+                            <span class="fs-4" id="ratingValue">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-send-fill"></i> Enviar Sugerencia
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="row mt-4 g-3">
+                <div class="col-md-6">
+                    <div class="card text-center border-0 shadow-sm p-3">
+                        <i class="bi bi-chat-dots-fill text-primary fs-1 mb-2"></i>
+                        <h3 class="fw-bold mb-0">@Model.Count()</h3>
+                        <small class="text-muted">Sugerencias Recibidas</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card text-center border-0 shadow-sm p-3">
+                        <i class="bi bi-people-fill text-success fs-1 mb-2"></i>
+                        <h3 class="fw-bold mb-0">@(Model.Any() ? Model.Select(s => s.Email).Distinct().Count() : 0)</h3>
+                        <small class="text-muted">Usuarios Participantes</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Sugerencias Aprobadas -->
+        <div class="col-lg-6">
+            <h3 class="fw-bold mb-4">
+                <i class="bi bi-list-stars text-success"></i> Sugerencias de la Comunidad
+            </h3>
+
+            @if (!Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle fs-1 d-block mb-3"></i>
+                    <h5>Aún no hay sugerencias</h5>
+                    <p class="mb-0">¡Sé el primero en compartir tu opinión!</p>
+                </div>
+            }
+            else
+            {
+                <div class="suggestion-list">
+                    @foreach (var sugerencia in Model)
+                    {
+                        <div class="card suggestion-card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">@sugerencia.Titulo</h5>
+                                    <span class="category-badge 
+                                        @(sugerencia.Categoria == "Nuevo Restaurante" ? "bg-primary" :
+                                          sugerencia.Categoria == "Mejora de Funcionalidad" ? "bg-info" :
+                                          sugerencia.Categoria == "Reporte de Error" ? "bg-danger" :
+                                          sugerencia.Categoria == "Comentario Positivo" ? "bg-success" :
+                                          "bg-secondary") text-white">
+                                        @sugerencia.Categoria
+                                    </span>
+                                </div>
+
+                                <p class="card-text text-muted">@sugerencia.Contenido</p>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-circle"></i> @sugerencia.Nombre
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> 
+                                            @sugerencia.FechaCreacion.ToString("dd/MM/yyyy")
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <div class="text-warning">
+                                        @for (int i = 0; i < sugerencia.Calificacion; i++)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Sección de Beneficios -->
+    <div class="row mt-5 g-4">
+        <div class="col-12">
+            <h3 class="fw-bold text-center mb-4">¿Por qué tus sugerencias son importantes?</h3>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="card border-0 shadow-sm h-100 p-4">
+                <i class="bi bi-trophy-fill text-warning fs-1 mb-3"></i>
+                <h5 class="fw-bold">Mejoramos Juntos</h5>
+                <p class="text-muted small">Tu feedback nos ayuda a crear una mejor experiencia</p>
+            </div>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="card border-0 shadow-sm h-100 p-4">
+                <i class="bi bi-megaphone-fill text-primary fs-1 mb-3"></i>
+                <h5 class="fw-bold">Tu Voz Importa</h5>
+                <p class="text-muted small">Cada sugerencia es revisada por nuestro equipo</p>
+            </div>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="card border-0 shadow-sm h-100 p-4">
+                <i class="bi bi-rocket-takeoff-fill text-success fs-1 mb-3"></i>
+                <h5 class="fw-bold">Innovación</h5>
+                <p class="text-muted small">Tus ideas impulsan nuevas funcionalidades</p>
+            </div>
+        </div>
+        <div class="col-md-3 text-center">
+            <div class="card border-0 shadow-sm h-100 p-4">
+                <i class="bi bi-heart-fill text-danger fs-1 mb-3"></i>
+                <h5 class="fw-bold">Comunidad</h5>
+                <p class="text-muted small">Construimos juntos la mejor plataforma gastronómica</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

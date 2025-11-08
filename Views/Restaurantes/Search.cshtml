@@ -1,0 +1,545 @@
+@model IEnumerable<DondeComemos.Models.Restaurante>
+
+@{
+    ViewData["Title"] = "Descubre Restaurantes";
+    var tipoFiltro = ViewBag.TipoFiltro as string;
+}
+
+<style>
+    .search-hero-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 100px 0 60px;
+        position: relative;
+        overflow: hidden;
+    }
+    .search-hero-modern::before {
+        content: '';
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: moveBackground 20s linear infinite;
+    }
+    @@keyframes moveBackground {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+    .search-container-modern {
+        position: relative;
+        z-index: 1;
+    }
+    .search-box-elegant {
+        background: white;
+        border-radius: 60px;
+        padding: 15px 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .filter-sidebar-modern {
+        background: white;
+        border-radius: 25px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        position: sticky;
+        top: 20px;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    .restaurant-card-premium {
+        border: none;
+        border-radius: 25px;
+        overflow: hidden;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        height: 100%;
+    }
+    .restaurant-card-premium:hover {
+        transform: translateY(-15px) scale(1.02);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    }
+    .restaurant-img-premium {
+        height: 280px;
+        object-fit: cover;
+        position: relative;
+        transition: transform 0.5s;
+    }
+    .restaurant-card-premium:hover .restaurant-img-premium {
+        transform: scale(1.1);
+    }
+    .restaurant-img-container {
+        overflow: hidden;
+        position: relative;
+    }
+    .restaurant-badge-premium {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: white;
+        padding: 12px 20px;
+        border-radius: 30px;
+        font-weight: 700;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+    .rating-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .service-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-right: 5px;
+    }
+    .filter-chip {
+        display: inline-block;
+        padding: 12px 25px;
+        border-radius: 30px;
+        border: 2px solid #e0e0e0;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        margin: 5px;
+    }
+    .filter-chip:hover, .filter-chip.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    .stats-banner {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    .sort-dropdown {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 10px 20px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .sort-dropdown:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .cuisine-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+    .price-badge {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-block;
+    }
+</style>
+
+<!-- Hero Moderno -->
+<div class="search-hero-modern">
+    <div class="container search-container-modern">
+        <div class="text-center mb-5">
+            <h1 class="display-3 fw-bold text-white mb-3">
+                Descubre Tu Próximo Restaurante Favorito
+            </h1>
+            <p class="lead text-white-75 mb-0">
+                @Model.Count() restaurantes esperando por ti
+            </p>
+        </div>
+
+        <!-- Barra de Búsqueda Elegante -->
+        <div class="search-box-elegant">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-search fs-3 text-primary me-3"></i>
+                <input type="text" class="form-control border-0 fs-5" id="mainSearch" 
+                       placeholder="Busca por nombre, ubicación o tipo de comida..."
+                       value="@ViewBag.SearchQuery"
+                       style="box-shadow: none;" />
+                <button class="btn btn-primary px-5 py-3 ms-3" type="button" 
+                        onclick="aplicarFiltros()"
+                        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 40px; font-weight: 600;">
+                    Buscar
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros Rápidos -->
+        <div class="text-center mt-4">
+            <button class="filter-chip @(tipoFiltro == "Peruana" ? "active" : "")" onclick="filtrarPorTipo('Peruana')">
+                🇵🇪 Peruana
+            </button>
+            <button class="filter-chip @(tipoFiltro == "Italiana" ? "active" : "")" onclick="filtrarPorTipo('Italiana')">
+                🇮🇹 Italiana
+            </button>
+            <button class="filter-chip @(tipoFiltro == "China" ? "active" : "")" onclick="filtrarPorTipo('China')">
+                🇨🇳 China
+            </button>
+            <button class="filter-chip @(tipoFiltro == "Japonesa" ? "active" : "")" onclick="filtrarPorTipo('Japonesa')">
+                🇯🇵 Japonesa
+            </button>
+            <button class="filter-chip @(tipoFiltro == "Fast Food" ? "active" : "")" onclick="filtrarPorTipo('Fast Food')">
+                🍔 Fast Food
+            </button>
+            <button class="filter-chip" onclick="limpiarFiltros()">
+                <i class="bi bi-x-circle"></i> Limpiar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <!-- Banner de Estadísticas -->
+    <div class="stats-banner">
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="bi bi-shop-window text-primary fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Count()</h3>
+                    <small class="text-muted">Restaurantes</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="bi bi-star-fill text-warning fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@(Model.Any() ? Model.Average(r => r.Rating).ToString("0.0") : "0")</h3>
+                    <small class="text-muted">Rating Promedio</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="bi bi-chat-dots-fill text-success fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Sum(r => r.TotalResenas)</h3>
+                    <small class="text-muted">Reseñas</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex flex-column align-items-center">
+                    <i class="bi bi-egg-fried text-danger fs-1 mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.Select(r => r.TipoCocina).Distinct().Count()</h3>
+                    <small class="text-muted">Tipos de Cocina</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Filtros Laterales -->
+        <div class="col-lg-3">
+            <div class="filter-sidebar-modern">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-funnel-fill text-primary"></i> Filtros Avanzados
+                </h5>
+
+                <!-- Tipo de Cocina -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-muted mb-3">
+                        <i class="bi bi-egg-fried"></i> Tipo de Cocina
+                    </label>
+                    <select class="form-select sort-dropdown" id="filterCocina" onchange="aplicarFiltros()">
+                        <option value="">Todos los tipos</option>
+                        <option value="Peruana" @@(tipoFiltro == "Peruana" ? "selected" : "")>🇵🇪 Peruana</option>
+                        <option value="Criolla">Criolla</option>
+                        <option value="Italiana">🇮🇹 Italiana</option>
+                        <option value="China">🇨🇳 China</option>
+                        <option value="Japonesa">🇯🇵 Japonesa</option>
+                        <option value="Mexicana">🇲🇽 Mexicana</option>
+                        <option value="Fast Food">🍔 Comida Rápida</option>
+                        <option value="Carnes y Parrillas">🥩 Carnes y Parrillas</option>
+                        <option value="Mariscos">🦞 Mariscos</option>
+                        <option value="Pizzería">🍕 Pizzería</option>
+                    </select>
+                </div>
+
+                <!-- Rango de Precios -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-muted mb-3">
+                        <i class="bi bi-cash-stack"></i> Rango de Precios
+                    </label>
+                    <select class="form-select sort-dropdown" id="filterPrecio" onchange="aplicarFiltros()">
+                        <option value="">Todos los precios</option>
+                        <option value="Económico">💰 Económico (S/ 10-20)</option>
+                        <option value="Medio">💰💰 Medio (S/ 20-40)</option>
+                        <option value="Alto">💰💰💰 Alto (S/ 40-80)</option>
+                        <option value="Premium">💰💰💰💰 Premium (S/ 80+)</option>
+                    </select>
+                </div>
+
+                <!-- Rating -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-muted mb-3">
+                        <i class="bi bi-star-fill"></i> Calificación Mínima
+                    </label>
+                    <select class="form-select sort-dropdown" id="filterRating" onchange="aplicarFiltros()">
+                        <option value="0">Todas las calificaciones</option>
+                        <option value="4.5">⭐ 4.5+ estrellas</option>
+                        <option value="4">⭐ 4+ estrellas</option>
+                        <option value="3">⭐ 3+ estrellas</option>
+                    </select>
+                </div>
+
+                <!-- Servicios -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-uppercase text-muted mb-3">
+                        <i class="bi bi-gear"></i> Servicios
+                    </label>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filterDelivery" onchange="aplicarFiltros()">
+                            <label class="form-check-label" for="filterDelivery">
+                                <i class="bi bi-truck text-success"></i> Delivery
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filterReservas" onchange="aplicarFiltros()">
+                            <label class="form-check-label" for="filterReservas">
+                                <i class="bi bi-calendar-check text-primary"></i> Reservas
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filterWifi" onchange="aplicarFiltros()">
+                            <label class="form-check-label" for="filterWifi">
+                                <i class="bi bi-wifi text-info"></i> WiFi Gratis
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filterVegetariano" onchange="aplicarFiltros()">
+                            <label class="form-check-label" for="filterVegetariano">
+                                <i class="bi bi-leaf text-success"></i> Vegetariano
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-secondary" onclick="limpiarFiltros()"
+                            style="border-radius: 15px; font-weight: 600;">
+                        <i class="bi bi-x-circle"></i> Limpiar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Restaurantes -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">
+                    <span id="resultCount">@Model.Count()</span> Restaurantes Encontrados
+                </h4>
+                <select class="form-select sort-dropdown w-auto" id="sortBy" onchange="ordenarResultados()">
+                    <option value="rating">Mejor Calificados</option>
+                    <option value="nombre">A-Z</option>
+                    <option value="resenas">Más Reseñados</option>
+                </select>
+            </div>
+
+            <div class="row g-4" id="restaurantesContainer">
+                @foreach (var r in Model)
+                {
+                    <div class="col-md-6 restaurant-item" 
+                         data-nombre="@r.Nombre.ToLower()"
+                         data-cocina="@r.TipoCocina"
+                         data-precio="@r.RangoPrecios"
+                         data-rating="@r.Rating"
+                         data-resenas="@r.TotalResenas"
+                         data-delivery="@r.DeliveryDisponible"
+                         data-reservas="@r.AceptaReservas"
+                         data-wifi="@r.WifiGratis"
+                         data-vegetariano="@r.OpcionesVegetarianas">
+                        <div class="card restaurant-card-premium">
+                            <div class="restaurant-img-container">
+                                <img src="@r.ImagenUrl" class="card-img-top restaurant-img-premium" alt="@r.Nombre" />
+                                <div class="restaurant-badge-premium">
+                                    <div class="rating-circle">
+                                        @r.Rating.ToString("0.0")
+                                    </div>
+                                </div>
+                                @if (r.Destacado)
+                                {
+                                    <div class="position-absolute top-0 start-0 m-3">
+                                        <span class="badge bg-warning text-dark px-3 py-2 fs-6">
+                                            <i class="bi bi-gem"></i> Destacado
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="card-body p-4">
+                                <div class="mb-3">
+                                    <span class="cuisine-badge me-2">@r.TipoCocina</span>
+                                    <span class="price-badge">@r.RangoPrecios</span>
+                                </div>
+
+                                <h4 class="card-title fw-bold mb-2">@r.Nombre</h4>
+                                
+                                <p class="text-muted mb-2">
+                                    <i class="bi bi-geo-alt-fill text-danger"></i> @r.Direccion
+                                </p>
+
+                                <p class="card-text text-muted" style="height: 45px; overflow: hidden;">
+                                    @r.Descripcion
+                                </p>
+
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="d-flex gap-2">
+                                        @if (r.DeliveryDisponible)
+                                        {
+                                            <div class="service-icon bg-success bg-opacity-10 text-success">
+                                                <i class="bi bi-truck"></i>
+                                            </div>
+                                        }
+                                        @if (r.AceptaReservas)
+                                        {
+                                            <div class="service-icon bg-primary bg-opacity-10 text-primary">
+                                                <i class="bi bi-calendar-check"></i>
+                                            </div>
+                                        }
+                                        @if (r.WifiGratis)
+                                        {
+                                            <div class="service-icon bg-info bg-opacity-10 text-info">
+                                                <i class="bi bi-wifi"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-chat-dots"></i> @r.TotalResenas reseñas
+                                    </small>
+                                </div>
+
+                                <div class="d-grid">
+                                    <a asp-action="Details" asp-route-id="@r.Id" 
+                                       class="btn btn-primary btn-lg"
+                                       style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 15px; font-weight: 600;">
+                                        Ver Menú y Detalles <i class="bi bi-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div id="noResults" class="text-center d-none mt-5 p-5">
+                <i class="bi bi-search display-1 text-muted mb-4"></i>
+                <h3 class="fw-bold mb-3">No se encontraron restaurantes</h3>
+                <p class="text-muted mb-4">Intenta ajustar tus filtros de búsqueda</p>
+                <button class="btn btn-primary btn-lg px-5" onclick="limpiarFiltros()">
+                    Limpiar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filtrarPorTipo(tipo) {
+            window.location.href = '/Restaurantes/Search?tipo=' + encodeURIComponent(tipo);
+        }
+
+        function aplicarFiltros() {
+            const searchText = document.getElementById('mainSearch').value.toLowerCase();
+            const cocina = document.getElementById('filterCocina').value;
+            const precio = document.getElementById('filterPrecio').value;
+            const rating = parseFloat(document.getElementById('filterRating').value);
+            const delivery = document.getElementById('filterDelivery').checked;
+            const reservas = document.getElementById('filterReservas').checked;
+            const wifi = document.getElementById('filterWifi').checked;
+            const vegetariano = document.getElementById('filterVegetariano').checked;
+
+            const items = document.querySelectorAll('.restaurant-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                let mostrar = true;
+
+                if (searchText && !item.dataset.nombre.includes(searchText)) {
+                    mostrar = false;
+                }
+                if (cocina && item.dataset.cocina !== cocina) {
+                    mostrar = false;
+                }
+                if (precio && item.dataset.precio !== precio) {
+                    mostrar = false;
+                }
+                if (rating && parseFloat(item.dataset.rating) < rating) {
+                    mostrar = false;
+                }
+                if (delivery && item.dataset.delivery !== 'True') {
+                    mostrar = false;
+                }
+                if (reservas && item.dataset.reservas !== 'True') {
+                    mostrar = false;
+                }
+                if (wifi && item.dataset.wifi !== 'True') {
+                    mostrar = false;
+                }
+                if (vegetariano && item.dataset.vegetariano !== 'True') {
+                    mostrar = false;
+                }
+
+                item.style.display = mostrar ? 'block' : 'none';
+                if (mostrar) visibleCount++;
+            });
+
+            document.getElementById('resultCount').textContent = visibleCount;
+            document.getElementById('noResults').classList.toggle('d-none', visibleCount > 0);
+        }
+
+        function limpiarFiltros() {
+            window.location.href = '/Restaurantes/Search';
+        }
+
+        function ordenarResultados() {
+            const container = document.getElementById('restaurantesContainer');
+            const items = Array.from(container.querySelectorAll('.restaurant-item'));
+            const sortBy = document.getElementById('sortBy').value;
+
+            items.sort((a, b) => {
+                if (sortBy === 'rating') {
+                    return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+                } else if (sortBy === 'nombre') {
+                    return a.dataset.nombre.localeCompare(b.dataset.nombre);
+                } else if (sortBy === 'resenas') {
+                    return parseInt(b.dataset.resenas) - parseInt(a.dataset.resenas);
+                }
+                return 0;
+            });
+
+            items.forEach(item => container.appendChild(item));
+        }
+
+        // Buscar en tiempo real
+        document.getElementById('mainSearch').addEventListener('input', aplicarFiltros);
+
+        // Aplicar filtros iniciales si vienen de URL
+        window.addEventListener('load', aplicarFiltros);
+    </script>
+}

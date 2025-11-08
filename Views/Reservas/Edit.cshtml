@@ -1,0 +1,364 @@
+@model DondeComemos.Models.Reserva
+
+@{
+    ViewData["Title"] = "Editar Reserva";
+    var restaurante = ViewBag.Restaurante as DondeComemos.Models.Restaurante;
+    var productos = ViewBag.Productos as IEnumerable<DondeComemos.Models.Producto>;
+}
+
+<style>
+    .edit-hero {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        padding: 60px 0;
+        color: white;
+    }
+    .product-selector {
+        border: 2px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 15px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .product-selector:hover {
+        border-color: #f093fb;
+        box-shadow: 0 5px 15px rgba(240, 147, 251, 0.2);
+    }
+    .product-selector.selected {
+        border-color: #f093fb;
+        background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
+    }
+    .quantity-control {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .product-selector.selected .quantity-control {
+        display: flex;
+    }
+    .quantity-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        border: 2px solid #f093fb;
+        background: white;
+        color: #f093fb;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .quantity-btn:hover {
+        background: #f093fb;
+        color: white;
+    }
+</style>
+
+<div class="edit-hero">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-pencil-square"></i> Editar Reserva
+        </h1>
+        <p class="lead">Código: @Model.CodigoReserva</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-x-circle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form asp-action="Edit" method="post" id="editForm">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="RestauranteId" />
+        <input type="hidden" asp-for="UserId" />
+        <input type="hidden" asp-for="Estado" />
+        <input type="hidden" asp-for="CodigoReserva" />
+        <input type="hidden" asp-for="FechaCreacion" />
+        <input type="hidden" name="productosJson" id="productosJson" />
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row g-4">
+            <!-- Información de la Reserva -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-warning text-dark py-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-info-circle"></i> Información de Reserva
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label asp-for="FechaReserva" class="form-label fw-bold">
+                                <i class="bi bi-calendar3"></i> Fecha *
+                            </label>
+                            <input asp-for="FechaReserva" class="form-control form-control-lg" 
+                                   type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="FechaReserva" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="HoraReserva" class="form-label fw-bold">
+                                <i class="bi bi-clock"></i> Hora *
+                            </label>
+                            <input asp-for="HoraReserva" class="form-control form-control-lg" 
+                                   type="time" />
+                            <span asp-validation-for="HoraReserva" class="text-danger small"></span>
+                            <small class="text-muted">
+                                Horario del restaurante: @(restaurante?.Horario ?? "Consultar")
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NumeroPersonas" class="form-label fw-bold">
+                                <i class="bi bi-people"></i> Número de Personas *
+                            </label>
+                            <select asp-for="NumeroPersonas" class="form-select form-select-lg">
+                                @for (int i = 1; i <= 20; i++)
+                                {
+                                    <option value="@i">@i @(i == 1 ? "persona" : "personas")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="NumeroPersonas" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="NotasEspeciales" class="form-label fw-bold">
+                                <i class="bi bi-chat-left-text"></i> Notas Especiales
+                            </label>
+                            <textarea asp-for="NotasEspeciales" class="form-control" rows="4"
+                                      placeholder="Alergias, preferencias de mesa, celebraciones, etc."></textarea>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Nota:</strong> Los cambios pueden requerir nueva confirmación del restaurante.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-check-circle"></i> Guardar Cambios
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.Id"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selección de Platos -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white py-3">
+                        <h4 class="mb-0">
+                            <i class="bi bi-menu-button-wide"></i> Modificar Platos
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4">
+                            Actualiza los platos pre-ordenados para esta reserva
+                        </p>
+
+                        @if (productos != null && productos.Any())
+                        {
+                            <div id="productsContainer" style="max-height: 600px; overflow-y: auto;">
+                                @foreach (var categoria in productos.GroupBy(p => p.Categoria))
+                                {
+                                    <div class="mb-4">
+                                        <h5 class="fw-bold border-bottom pb-2 mb-3">
+                                            <i class="bi bi-bookmark-fill text-primary"></i> @categoria.Key
+                                        </h5>
+
+                                        @foreach (var producto in categoria)
+                                        {
+                                            var productoReservado = Model.ProductosReservados.FirstOrDefault(pr => pr.ProductoId == producto.Id);
+                                            var isSelected = productoReservado != null;
+                                            var cantidad = productoReservado?.Cantidad ?? 1;
+
+                                            <div class="product-selector mb-3 @(isSelected ? "selected" : "")" 
+                                                 data-product-id="@producto.Id">
+                                                <div class="d-flex align-items-start">
+                                                    @if (!string.IsNullOrEmpty(producto.ImagenUrl))
+                                                    {
+                                                        <img src="@producto.ImagenUrl" alt="@producto.Nombre"
+                                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;"
+                                                             class="me-3" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="bg-light d-flex align-items-center justify-content-center me-3"
+                                                             style="width: 80px; height: 80px; border-radius: 10px;">
+                                                            <i class="bi bi-image text-muted"></i>
+                                                        </div>
+                                                    }
+
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="fw-bold mb-1">@producto.Nombre</h6>
+                                                        @if (!string.IsNullOrEmpty(producto.Descripcion))
+                                                        {
+                                                            <p class="text-muted small mb-2">
+                                                                @(producto.Descripcion.Length > 100 ? 
+                                                                  producto.Descripcion.Substring(0, 100) + "..." : 
+                                                                  producto.Descripcion)
+                                                            </p>
+                                                        }
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <strong class="text-success">S/ @producto.Precio.ToString("0.00")</strong>
+                                                            @if (producto.RecomendacionChef)
+                                                            {
+                                                                <span class="badge bg-warning text-dark">
+                                                                    <i class="bi bi-star-fill"></i> Chef
+                                                                </span>
+                                                            }
+                                                        </div>
+
+                                                        <div class="quantity-control">
+                                                            <span class="text-muted small">Cantidad:</span>
+                                                            <button type="button" class="quantity-btn quantity-minus">-</button>
+                                                            <input type="number" class="form-control form-control-sm text-center quantity-input" 
+                                                                   value="@cantidad" min="1" max="20" style="width: 60px;" readonly />
+                                                            <button type="button" class="quantity-btn quantity-plus">+</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                No hay productos disponibles en el menú actual
+                            </div>
+                        }
+
+                        <div id="selectedSummary" class="alert alert-success mt-3" style="display: @(Model.ProductosReservados.Any() ? "block" : "none")">
+                            <h6 class="fw-bold">
+                                <i class="bi bi-check-circle"></i> Platos Seleccionados
+                            </h6>
+                            <ul id="selectedList" class="list-unstyled mb-0">
+                                @foreach (var item in Model.ProductosReservados)
+                                {
+                                    <li><i class="bi bi-check2"></i> @item.Producto?.Nombre x@item.Cantidad</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const selectedProducts = new Map();
+
+        // Cargar productos ya seleccionados
+        @foreach (var item in Model.ProductosReservados)
+        {
+            <text>
+            selectedProducts.set('@item.ProductoId', {
+                ProductoId: @item.ProductoId,
+                Cantidad: @item.Cantidad,
+                Nombre: '@Html.Raw(item.Producto?.Nombre ?? "")'
+            });
+            </text>
+        }
+
+        document.querySelectorAll('.product-selector').forEach(selector => {
+            selector.addEventListener('click', function(e) {
+                if (e.target.classList.contains('quantity-btn') || e.target.classList.contains('quantity-input')) {
+                    return;
+                }
+                
+                this.classList.toggle('selected');
+                const productId = this.dataset.productId;
+                
+                if (this.classList.contains('selected')) {
+                    const productName = this.querySelector('h6').textContent;
+                    const quantityInput = this.querySelector('.quantity-input');
+                    selectedProducts.set(productId, {
+                        ProductoId: parseInt(productId),
+                        Cantidad: parseInt(quantityInput.value),
+                        Nombre: productName
+                    });
+                } else {
+                    selectedProducts.delete(productId);
+                }
+                
+                updateSummary();
+            });
+
+            const minusBtn = selector.querySelector('.quantity-minus');
+            const plusBtn = selector.querySelector('.quantity-plus');
+            const quantityInput = selector.querySelector('.quantity-input');
+
+            minusBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    value--;
+                    quantityInput.value = value;
+                    const productId = selector.dataset.productId;
+                    if (selectedProducts.has(productId)) {
+                        selectedProducts.get(productId).Cantidad = value;
+                        updateSummary();
+                    }
+                }
+            });
+
+            plusBtn?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                let value = parseInt(quantityInput.value);
+                if (value < 20) {
+                    value++;
+                    quantityInput.value = value;
+                    const productId = selector.dataset.productId;
+                    if (selectedProducts.has(productId)) {
+                        selectedProducts.get(productId).Cantidad = value;
+                        updateSummary();
+                    }
+                }
+            });
+        });
+
+        function updateSummary() {
+            const summary = document.getElementById('selectedSummary');
+            const list = document.getElementById('selectedList');
+            
+            if (selectedProducts.size === 0) {
+                summary.style.display = 'none';
+                return;
+            }
+
+            summary.style.display = 'block';
+            list.innerHTML = '';
+            
+            selectedProducts.forEach(product => {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="bi bi-check2"></i> ${product.Nombre} x${product.Cantidad}`;
+                list.appendChild(li);
+            });
+
+            const productosArray = Array.from(selectedProducts.values());
+            document.getElementById('productosJson').value = JSON.stringify(productosArray);
+        }
+
+        // Inicializar el resumen
+        updateSummary();
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            updateSummary();
+        });
+    </script>
+}
