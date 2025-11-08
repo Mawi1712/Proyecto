@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DondeComemos.Data;
-using System.Globalization;
 
 namespace DondeComemos.Controllers.Api
 {
@@ -10,10 +9,12 @@ namespace DondeComemos.Controllers.Api
     public class CalendarioController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<CalendarioController> _logger;
 
-        public CalendarioController(ApplicationDbContext context)
+        public CalendarioController(ApplicationDbContext context, ILogger<CalendarioController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet("disponibilidad/{restauranteId}")]
@@ -24,6 +25,12 @@ namespace DondeComemos.Controllers.Api
                 var restaurante = await _context.Restaurantes.FindAsync(restauranteId);
                 if (restaurante == null)
                     return NotFound(new { error = "Restaurante no encontrado" });
+
+                // Validar que la fecha no sea muy antigua
+                if (fecha.Date < DateTime.Now.Date.AddDays(-1))
+                {
+                    return BadRequest(new { error = "No se puede consultar disponibilidad de fechas antiguas" });
+                }
 
                 // Obtener reservas para esa fecha
                 var reservasDelDia = await _context.Reservas
@@ -41,7 +48,7 @@ namespace DondeComemos.Controllers.Api
                 for (var hora = horaInicio; hora <= horaFin; hora += intervalo)
                 {
                     var reservasEnHora = reservasDelDia.Count(r => r.HoraReserva == hora);
-                    var capacidadDisponible = 10 - reservasEnHora; // Asumimos capacidad de 10 reservas por hora
+                    var capacidadDisponible = 10 - reservasEnHora; // Capacidad de 10 reservas por hora
 
                     horariosDisponibles.Add(new
                     {
@@ -61,7 +68,8 @@ namespace DondeComemos.Controllers.Api
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError($"Error en GetDisponibilidad: {ex.Message}");
+                return StatusCode(500, new { error = "Error al obtener disponibilidad", details = ex.Message });
             }
         }
 
@@ -70,28 +78,37 @@ namespace DondeComemos.Controllers.Api
         {
             try
             {
-                var reservas = await _context.Reservas
+                var query = _context.Reservas
                     .Include(r => r.Restaurante)
-                    .Where(r => r.RestauranteId == restauranteId
-                        && r.FechaReserva >= start.Date
+                    .Where(r => r.FechaReserva >= start.Date
                         && r.FechaReserva <= end.Date
-                        && r.Estado != "Cancelada")
-                    .ToListAsync();
+                        && r.Estado != "Cancelada");
+
+                // Filtrar por restaurante si se especifica (0 = todos)
+                if (restauranteId > 0)
+                {
+                    query = query.Where(r => r.RestauranteId == restauranteId);
+                }
+
+                var reservas = await query.ToListAsync();
 
                 var eventos = reservas.Select(r => new
                 {
                     id = r.Id,
                     title = $"{r.NumeroPersonas} personas - {r.CodigoReserva}",
                     start = r.FechaReserva.Date.Add(r.HoraReserva).ToString("yyyy-MM-ddTHH:mm:ss"),
-                    backgroundColor = r.Estado == "Confirmada" ? "#28a745" : "#ffc107",
-                    borderColor = r.Estado == "Confirmada" ? "#28a745" : "#ffc107",
+                    backgroundColor = r.Estado == "Confirmada" ? "#28a745" : 
+                                    r.Estado == "Pendiente" ? "#ffc107" : "#6c757d",
+                    borderColor = r.Estado == "Confirmada" ? "#28a745" : 
+                                 r.Estado == "Pendiente" ? "#ffc107" : "#6c757d",
                     textColor = "#fff",
                     extendedProps = new
                     {
                         numeroPersonas = r.NumeroPersonas,
                         estado = r.Estado,
                         codigoReserva = r.CodigoReserva,
-                        notasEspeciales = r.NotasEspeciales
+                        notasEspeciales = r.NotasEspeciales,
+                        restaurante = r.Restaurante?.Nombre
                     }
                 }).ToList();
 
@@ -99,7 +116,8 @@ namespace DondeComemos.Controllers.Api
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError($"Error en GetEventos: {ex.Message}");
+                return StatusCode(500, new { error = "Error al obtener eventos", details = ex.Message });
             }
         }
 
@@ -110,11 +128,17 @@ namespace DondeComemos.Controllers.Api
             {
                 var fechaConsulta = fecha ?? DateTime.Today;
                 
-                var reservasDelMes = await _context.Reservas
-                    .Where(r => r.RestauranteId == restauranteId
-                        && r.FechaReserva.Year == fechaConsulta.Year
-                        && r.FechaReserva.Month == fechaConsulta.Month
-                        && r.Estado != "Cancelada")
+                var query = _context.Reservas.Where(r => r.Estado != "Cancelada");
+
+                // Filtrar por restaurante si se especifica
+                if (restauranteId > 0)
+                {
+                    query = query.Where(r => r.RestauranteId == restauranteId);
+                }
+
+                var reservasDelMes = await query
+                    .Where(r => r.FechaReserva.Year == fechaConsulta.Year
+                        && r.FechaReserva.Month == fechaConsulta.Month)
                     .ToListAsync();
 
                 var reservasDelDia = reservasDelMes
@@ -153,7 +177,8 @@ namespace DondeComemos.Controllers.Api
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                _logger.LogError($"Error en GetEstadisticas: {ex.Message}");
+                return StatusCode(500, new { error = "Error al obtener estadísticas", details = ex.Message });
             }
         }
     }

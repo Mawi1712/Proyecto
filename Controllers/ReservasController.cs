@@ -91,6 +91,20 @@ namespace DondeComemos.Controllers
                 return RedirectToAction("Create", new { restauranteId = reserva.RestauranteId });
             }
 
+            // Validar capacidad
+            var reservasEnHora = await _context.Reservas
+                .Where(r => r.RestauranteId == reserva.RestauranteId
+                    && r.FechaReserva.Date == reserva.FechaReserva.Date
+                    && r.HoraReserva == reserva.HoraReserva
+                    && r.Estado != "Cancelada")
+                .CountAsync();
+
+            if (reservasEnHora >= 10)
+            {
+                TempData["Error"] = "No hay disponibilidad en ese horario. Por favor, selecciona otro.";
+                return RedirectToAction("Create", new { restauranteId = reserva.RestauranteId });
+            }
+
             if (ModelState.IsValid)
             {
                 reserva.UserId = userId;
@@ -319,34 +333,34 @@ namespace DondeComemos.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // GET: Calendario (Solo Admin)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Calendario(int? restauranteId)
+        {
+            if (restauranteId.HasValue)
+            {
+                var restaurante = await _context.Restaurantes.FindAsync(restauranteId.Value);
+                if (restaurante == null)
+                    return NotFound();
+
+                ViewBag.RestauranteId = restauranteId.Value;
+                ViewBag.RestauranteNombre = restaurante.Nombre;
+            }
+            else
+            {
+                ViewBag.RestauranteId = 0;
+                ViewBag.RestauranteNombre = "Todos los Restaurantes";
+            }
+
+            return View();
+        }
+
         private string GenerarCodigoReserva()
         {
             var random = new Random();
             var codigo = $"RES{DateTime.Now:yyyyMMdd}{random.Next(1000, 9999)}";
             return codigo;
         }
-        
-    // Agregar al final de la clase ReservasController, antes del último }
-
-public async Task<IActionResult> Calendario(int? restauranteId)
-{
-    if (restauranteId.HasValue)
-    {
-        var restaurante = await _context.Restaurantes.FindAsync(restauranteId.Value);
-        if (restaurante == null)
-            return NotFound();
-
-        ViewBag.RestauranteId = restauranteId.Value;
-        ViewBag.RestauranteNombre = restaurante.Nombre;
-    }
-    else
-    {
-        ViewBag.RestauranteId = 0;
-        ViewBag.RestauranteNombre = "Todos los Restaurantes";
-    }
-
-    return View();
-}
     }
 
     // DTO para productos
@@ -355,6 +369,5 @@ public async Task<IActionResult> Calendario(int? restauranteId)
         public int ProductoId { get; set; }
         public int Cantidad { get; set; }
         public string? Notas { get; set; }
-        
     }
 }
