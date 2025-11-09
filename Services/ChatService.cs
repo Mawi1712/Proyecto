@@ -15,6 +15,7 @@ namespace DondeComemos.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<ChatService> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly string _apiKey;
 
         public ChatService(
             IConfiguration configuration, 
@@ -24,12 +25,26 @@ namespace DondeComemos.Services
             _configuration = configuration;
             _logger = logger;
             _context = context;
+            
+            // Obtener la API Key de la configuración
+            _apiKey = configuration["Anthropic:ApiKey"] ?? "";
+            
+            if (string.IsNullOrEmpty(_apiKey) || _apiKey == "TU_API_KEY_AQUI")
+            {
+                _logger.LogWarning("Anthropic API Key no configurada correctamente");
+            }
         }
 
         public async Task<string> GetChatResponseAsync(string userMessage, string conversationHistory)
         {
             try
             {
+                // Verificar que la API Key esté configurada
+                if (string.IsNullOrEmpty(_apiKey) || _apiKey == "TU_API_KEY_AQUI")
+                {
+                    return "⚠️ El chatbot no está configurado. Por favor, contacta al administrador para configurar la API Key de Anthropic.";
+                }
+
                 // Obtener información del contexto sobre restaurantes
                 var restaurantesInfo = await GetRestaurantContextAsync();
                 
@@ -54,33 +69,44 @@ INSTRUCCIONES:
 
                 var messages = new List<object>
                 {
-                    new { role = "system", content = systemPrompt }
+                    new { role = "user", content = userMessage }
                 };
 
                 // Agregar historial de conversación si existe
                 if (!string.IsNullOrEmpty(conversationHistory))
                 {
-                    var history = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(conversationHistory);
-                    if (history != null)
+                    try
                     {
-                        foreach (var msg in history)
+                        var history = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(conversationHistory);
+                        if (history != null && history.Count > 0)
                         {
-                            messages.Add(new { role = msg["role"], content = msg["content"] });
+                            var historyMessages = new List<object>();
+                            foreach (var msg in history)
+                            {
+                                historyMessages.Add(new { role = msg["role"], content = msg["content"] });
+                            }
+                            historyMessages.Add(new { role = "user", content = userMessage });
+                            messages = historyMessages;
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning($"Error procesando historial: {ex.Message}");
+                    }
                 }
-
-                // Agregar mensaje del usuario
-                messages.Add(new { role = "user", content = userMessage });
 
                 var requestBody = new
                 {
                     model = "claude-sonnet-4-20250514",
                     max_tokens = 1000,
+                    system = systemPrompt,
                     messages = messages
                 };
 
                 using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
+                httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+                
                 var jsonContent = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -103,7 +129,14 @@ INSTRUCCIONES:
                 }
                 else
                 {
-                    _logger.LogError($"Error en API de Claude: {response.StatusCode}");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    _logger.LogError($"Error en API de Claude: {response.StatusCode} - {errorContent}");
+                    
+                    if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        return "⚠️ Error de autenticación con Anthropic API. Por favor verifica la configuración de la API Key.";
+                    }
+                    
                     return "Lo siento, estoy teniendo problemas técnicos. Por favor, intenta de nuevo en un momento.";
                 }
             }
