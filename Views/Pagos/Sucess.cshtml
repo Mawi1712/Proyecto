@@ -4,9 +4,9 @@
 
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
+        <div class="col-md-8">
             <div class="card shadow-lg border-0">
-                <div class="card-body p-5">
+                <div class="card-body p-5 text-center">
                     <div class="mb-4">
                         <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
                     </div>
@@ -14,20 +14,82 @@
                     <p class="lead text-muted mb-4">
                         Tu pago ha sido procesado correctamente.
                     </p>
+                    
                     <div class="alert alert-success">
                         <i class="bi bi-info-circle"></i>
-                        Recibirás un correo de confirmación en breve.
+                        Recibirás un correo de confirmación en breve con los detalles de tu reserva.
                     </div>
-                    <div class="d-grid gap-2">
+
+                    <!-- Información de prueba -->
+                    <div class="alert alert-info mt-4">
+                        <h5 class="fw-bold">
+                            <i class="bi bi-credit-card"></i> Tarjeta de Prueba Utilizada
+                        </h5>
+                        <p class="mb-2">Para futuras pruebas, usa estos datos:</p>
+                        <div class="text-start" style="font-family: 'Courier New', monospace;">
+                            <p class="mb-1"><strong>Número:</strong> 4242 4242 4242 4242</p>
+                            <p class="mb-1"><strong>Fecha:</strong> Cualquier fecha futura (ej: 12/25)</p>
+                            <p class="mb-1"><strong>CVC:</strong> Cualquier 3 dígitos (ej: 123)</p>
+                            <p class="mb-0"><strong>ZIP:</strong> Cualquier código (ej: 12345)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
                         <a asp-controller="Reservas" asp-action="Index" 
                            class="btn btn-primary btn-lg">
                             <i class="bi bi-calendar-check"></i> Ver Mis Reservas
                         </a>
                         <a asp-controller="Home" asp-action="Index" 
-                           class="btn btn-outline-secondary">
+                           class="btn btn-outline-secondary btn-lg">
                             Volver al Inicio
                         </a>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tarjetas de prueba adicionales -->
+            <div class="card mt-4 border-warning">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Otras Tarjetas de Prueba Stripe
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Número de Tarjeta</th>
+                                    <th>Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>4242 4242 4242 4242</code></td>
+                                    <td><span class="badge bg-success">Éxito</span></td>
+                                </tr>
+                                <tr>
+                                    <td><code>4000 0027 6000 3184</code></td>
+                                    <td><span class="badge bg-info">Requiere 3D Secure</span></td>
+                                </tr>
+                                <tr>
+                                    <td><code>4000 0000 0000 0002</code></td>
+                                    <td><span class="badge bg-danger">Tarjeta Rechazada</span></td>
+                                </tr>
+                                <tr>
+                                    <td><code>4000 0000 0000 9995</code></td>
+                                    <td><span class="badge bg-warning">Fondos Insuficientes</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i> 
+                        Más tarjetas de prueba en: 
+                        <a href="https://stripe.com/docs/testing" target="_blank">
+                            stripe.com/docs/testing
+                        </a>
+                    </small>
                 </div>
             </div>
         </div>

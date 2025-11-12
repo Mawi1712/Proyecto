@@ -32,7 +32,7 @@ namespace DondeComemos.Models
         
         [Required]
         [Display(Name = "Estado")]
-        public string Estado { get; set; } = "Pendiente";
+        public string Estado { get; set; } = "Pendiente"; // Pendiente, Confirmada, Cancelada, Completada
         
         [Display(Name = "Fecha de Creación")]
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
