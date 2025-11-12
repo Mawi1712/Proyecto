@@ -81,14 +81,16 @@
                 </p>
             </div>
             
-            @if (User.Identity?.IsAuthenticated ?? false)
-            {
-                <div class="d-flex gap-2">
-                    <a asp-controller="Reservas" asp-action="Create" 
-                       asp-route-restauranteId="@Model.Id"
-                       class="btn btn-success btn-lg">
-                        <i class="bi bi-calendar-plus"></i> Hacer Reserva
-                    </a>
+           @if (User.Identity?.IsAuthenticated ?? false)
+{
+    <div class="d-flex gap-2">
+        <a asp-controller="Reservas" asp-action="Create" 
+           asp-route-restauranteId="@Model.Id"
+           class="btn btn-success btn-lg">
+            <i class="bi bi-calendar-plus"></i> Hacer Reserva
+        </a>
+    </div>
+}
                     
                     <form asp-controller="Favoritos" asp-action="Agregar" method="post" id="favoritoForm">
                         <input type="hidden" name="restauranteId" value="@Model.Id" />

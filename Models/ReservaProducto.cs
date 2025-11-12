@@ -16,6 +16,7 @@ namespace DondeComemos.Models
         [Range(1, 20)]
         public int Cantidad { get; set; }
         
+        [StringLength(200)]
         public string? NotasProducto { get; set; }
         
         // Navegación
