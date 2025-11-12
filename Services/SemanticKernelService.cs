@@ -30,10 +30,10 @@ namespace DondeComemos.Services
         {
             _logger = logger;
             _context = context;
-            
+
             // Obtener la API Key
             _apiKey = configuration["Anthropic:ApiKey"] ?? "";
-            
+
             if (string.IsNullOrEmpty(_apiKey) || _apiKey == "TU_API_KEY_AQUI")
             {
                 _logger.LogError("Anthropic API Key no configurada");
@@ -46,7 +46,7 @@ namespace DondeComemos.Services
         }
 
         public async Task<string> GetChatResponseAsync(
-            string userMessage, 
+            string userMessage,
             List<ChatMessageContent> history)
         {
             try
@@ -61,16 +61,17 @@ namespace DondeComemos.Services
 
                 // Construir el historial de mensajes
                 var messages = new List<object>();
-                
+
                 // Agregar historial previo
                 foreach (var msg in history)
                 {
-                    messages.Add(new { 
-                        role = msg.Role.ToString().ToLower(), 
-                        content = msg.Content 
+                    messages.Add(new
+                    {
+                        role = msg.Role.ToString().ToLower(),
+                        content = msg.Content
                     });
                 }
-                
+
                 // Agregar mensaje actual del usuario
                 messages.Add(new { role = "user", content = userMessage });
 
@@ -109,12 +110,12 @@ Responde de forma natural, útil y amigable.";
                 httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
                 httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
-                
+
                 var jsonContent = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
-                
+
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 _logger.LogInformation("Enviando petición a Anthropic API");
@@ -129,22 +130,22 @@ Responde de forma natural, útil y amigable.";
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("Respuesta exitosa de Anthropic API");
-                    
+
                     var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    if (responseData.TryGetProperty("content", out var contentArray) && 
+
+                    if (responseData.TryGetProperty("content", out var contentArray) &&
                         contentArray.GetArrayLength() > 0)
                     {
                         var textContent = contentArray[0].GetProperty("text").GetString();
                         return textContent ?? "Lo siento, no pude generar una respuesta.";
                     }
-                    
+
                     return "Lo siento, no pude procesar la respuesta del servidor.";
                 }
                 else
                 {
                     _logger.LogError($"Error en API: {response.StatusCode} - {responseContent}");
-                    
+
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
                         return "⚠️ Error de autenticación. La API Key configurada no es válida. Por favor verifica la configuración.";
@@ -153,7 +154,7 @@ Responde de forma natural, útil y amigable.";
                     {
                         return "⚠️ Se ha excedido el límite de peticiones. Por favor espera un momento e intenta de nuevo.";
                     }
-                    
+
                     return $"Lo siento, hubo un error en el servidor ({response.StatusCode}). Por favor intenta de nuevo.";
                 }
             }
@@ -227,7 +228,7 @@ Responde de forma natural, útil y amigable.";
 
                 var sb = new StringBuilder();
                 sb.AppendLine($"Total de restaurantes: {restaurantes.Count}\n");
-                
+
                 foreach (var r in restaurantes)
                 {
                     sb.AppendLine($"📍 {r.Nombre}");
@@ -235,19 +236,19 @@ Responde de forma natural, útil y amigable.";
                     sb.AppendLine($"   - Precio: {r.RangoPrecios}");
                     sb.AppendLine($"   - Rating: {r.Rating:F1}/5.0 ({r.TotalResenas} reseñas)");
                     sb.AppendLine($"   - Ubicación: {r.Direccion}");
-                    
+
                     if (!string.IsNullOrEmpty(r.Telefono))
                         sb.AppendLine($"   - Teléfono: {r.Telefono}");
-                    
+
                     var servicios = new List<string>();
                     if (r.DeliveryDisponible) servicios.Add("Delivery");
                     if (r.AceptaReservas) servicios.Add("Reservas");
                     if (r.OpcionesVegetarianas) servicios.Add("Vegetariano");
                     if (r.OpcionesVeganas) servicios.Add("Vegano");
-                    
+
                     if (servicios.Any())
                         sb.AppendLine($"   - Servicios: {string.Join(", ", servicios)}");
-                    
+
                     if (r.ProductosDestacados.Any())
                     {
                         sb.AppendLine($"   - Platos destacados:");
@@ -256,7 +257,7 @@ Responde de forma natural, útil y amigable.";
                             sb.AppendLine($"     • {p.Nombre} - S/ {p.Precio:F2}");
                         }
                     }
-                    
+
                     sb.AppendLine();
                 }
 
